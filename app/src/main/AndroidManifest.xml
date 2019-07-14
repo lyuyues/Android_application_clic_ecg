@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="ca.uvic.ece.ecg.heartcarer1">
+
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
+
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.READ_PROFILE"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/main_heart_beat_128"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.Login"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.Signup"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.MainActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.BleDevicePicker"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.MainActivity" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.DataManageList"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.MainActivity" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.DataManagePlot"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.DataManageList" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.Feedback"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.MainActivity" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.DoctorNotes"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.MainActivity" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.DoctorNotePlot"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.DoctorNotes" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.QuickResult"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.QuickResult" />
+        <activity
+            android:name="ca.uvic.ece.ecg.heartcarer1.Data_statistic"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"
+            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.Data_statistic" />
+
+        <service android:name="ca.uvic.ece.ecg.heartcarer1.UpdataService" />
+        <service android:name="ca.uvic.ece.ecg.heartcarer1.BleService" />
+
+
+        <receiver android:name="MyAppWidgetProvider">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.android.mywidgetaction" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/appwidget_info" />
+        </receiver>
+    </application>
+
+</manifest>

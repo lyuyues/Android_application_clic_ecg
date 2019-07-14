@@ -1,0 +1,35 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background"
+        android:orientation="vertical" >
+
+        <EditText
+            android:id="@+id/mynote"
+            android:layout_width="match_parent"
+            android:layout_height="145dp"
+			android:inputType="textMultiLine"
+			android:gravity="left|top"
+			android:minLines="6" 
+  			android:scrollbars="vertical"  
+            android:hint="write my note here..." >
+        </EditText>
+
+        <Button
+            android:id="@+id/button3"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginLeft="70dp"
+            android:layout_marginRight="70dp"
+            android:layout_marginTop="30dp"
+            android:background="@xml/signin_login"
+            android:text="@string/conti"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+</ScrollView>

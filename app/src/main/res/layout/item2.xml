@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="5dip" >
+
+   <Button
+       android:id="@+id/button_accept"
+       android:layout_width="60dp"
+       android:layout_height="wrap_content"
+       android:layout_alignBottom="@+id/hospital"
+       android:layout_alignParentRight="true"
+       android:layout_alignParentTop="true"
+       android:text="ACCEPT"
+       android:textSize="13sp" />
+
+   <Button
+       android:id="@+id/button_decline"
+       android:layout_width="60dp"
+       android:layout_height="wrap_content"
+       android:layout_alignBottom="@+id/hospital"
+       android:layout_alignParentTop="true"
+       android:layout_toLeftOf="@+id/button_accept"
+       android:text="DECLINE"
+       android:textSize="13sp" />
+  <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:textColor="#040404"
+        android:typeface="sans" 
+        android:textSize="25dip"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/hospital"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/textView"
+        android:text="hospital"
+        android:textColor="#343434"
+        android:textSize="15dip" />
+
+</RelativeLayout>

@@ -1,0 +1,45 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@drawable/background"
+    android:orientation="vertical" >
+    <LinearLayout
+        android:id="@+id/chart"
+        android:layout_weight="1"
+        android:layout_height="fill_parent"
+        android:layout_width="fill_parent"
+        android:orientation="horizontal" >
+    </LinearLayout>
+    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
+            
+            <Button
+                android:id="@+id/HR"
+                android:layout_width="88dp"
+                android:layout_height="wrap_content"
+                android:text="HR" >
+            </Button>
+            <Button
+                android:id="@+id/QRS"
+                android:layout_width="88dp"
+                android:layout_height="wrap_content"
+                android:text="QRS" >
+            </Button>
+            <Button
+                android:id="@+id/QTC"
+                android:layout_width="88dp"
+                android:layout_height="wrap_content"
+                android:text="QTC" >
+            </Button>
+            <Button
+                android:id="@+id/PR"
+                android:layout_width="88dp"
+                android:layout_height="wrap_content"
+                android:text="PR" >
+            </Button>
+        </LinearLayout>
+  
+        
+    
+</LinearLayout>

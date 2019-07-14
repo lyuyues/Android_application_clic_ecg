@@ -1,0 +1,88 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity" >
+
+    <RelativeLayout
+        android:id="@+id/aboveLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+         >
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:background="#dbdbdb"
+            android:orientation="vertical" >
+
+            <LinearLayout
+                 android:orientation = "vertical"
+                android:id="@+id/fragmentRoot"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent" />
+
+            <LinearLayout
+                android:id="@+id/bottomList"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="#dfdfdf"
+                android:orientation="horizontal" >
+
+                <LinearLayout
+                    android:id="@+id/bottomItemCurrentBg1"
+                    style="@style/main_bottom_item" >
+
+                    <RadioButton
+                        android:id="@+id/ProfileSet"
+                        style="@style/footbar"
+                        android:paddingTop="8dp"
+                        android:text="Profile"
+                        android:drawableTop="@drawable/tab_settings_normal"
+                        android:textSize="14sp" 
+                        android:textColor="#A9A9A9"
+                        />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/bottomItemCurrentBg2"
+                    style="@style/main_bottom_item" >
+
+                    <RadioButton
+                        android:id="@+id/NotificationSet"
+                        style="@style/footbar"
+                        android:paddingTop="8dp"
+                        android:text="Notification" 
+                        android:textSize="14sp"
+                        android:drawableTop="@drawable/tab_address_normal"
+                        android:textColor="#A9A9A9"
+                        />
+                </LinearLayout>
+ 
+
+                <LinearLayout
+                    android:id="@+id/bottomItemCurrentBg3"
+                    style="@style/main_bottom_item" >
+
+                    <RadioButton
+                        android:id="@+id/GeneralSet"
+                        style="@style/footbar"
+                        android:paddingTop="8dp"
+                        android:text="General"
+                        android:textSize="14sp" 
+                        android:drawableTop="@drawable/tab_find_frd_normal"
+                        android:textColor="#A9A9A9" 
+                        />
+                </LinearLayout>
+
+
+              
+            </LinearLayout>
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</RelativeLayout>
