@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/shareFb"
+        android:icon="@drawable/ic_facebook"
+        android:orderInCategory="100"
+        android:showAsAction="always|withText"
+        android:title="Share with Facebook"/>
+    
+    <item
+        android:id="@+id/shareGp"
+        android:icon="@drawable/ic_googleplus"
+        android:orderInCategory="100"
+        android:showAsAction="always|withText"
+        android:title="Share with Google+"/>
+
+</menu>

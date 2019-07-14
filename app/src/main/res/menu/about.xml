@@ -1,0 +1,22 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/homepage"
+        android:icon="@drawable/ic_action_web_site"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/homepage"/>
+    <item
+        android:id="@+id/downloadapk"
+        android:icon="@drawable/ic_action_download"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/downapk"/>
+    <item
+        android:id="@+id/feedback"
+        android:icon="@drawable/ic_action_chat"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom|withText"
+        android:title="@string/feedback"/>
+
+</menu>

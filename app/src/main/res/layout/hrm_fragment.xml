@@ -1,0 +1,87 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#FACDCD"
+    android:orientation="vertical" >
+
+    <TableRow
+        android:id="@+id/tableRow1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_weight="1" >
+
+          
+
+            <Button
+                android:id="@+id/button1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/hrm_notconnected"
+                android:textColor="@android:color/black"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_weight="1" >
+
+ 		<Button
+ 		    android:id="@+id/start_test"
+ 		    android:layout_width="match_parent"
+ 		    android:layout_height="match_parent"
+ 		    android:text="@string/start_test"
+ 		    android:textColor="@android:color/black"
+ 		    android:textSize="15sp" />
+
+        </LinearLayout>
+    </TableRow>
+
+
+
+    <FrameLayout
+        android:id="@+id/chart"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.47"
+        android:orientation="horizontal" >
+
+    </FrameLayout>
+    <TableRow
+        android:id="@+id/tableRow2"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content" >
+
+        <LinearLayout
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/heartrate_64" />
+
+            <TextView
+                android:id="@+id/textView_HR"
+                android:layout_width= "0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.4"
+                android:gravity="center"
+                android:text="NULL"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+            
+            <TextView
+                android:id="@+id/textView_vtvf"
+                android:layout_width= "0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.0"
+                android:gravity="center"
+                android:text="NULL"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
+
+    </TableRow>
+        
+    
+</LinearLayout>
