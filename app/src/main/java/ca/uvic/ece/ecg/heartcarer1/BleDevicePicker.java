@@ -25,6 +25,7 @@ import android.widget.TextView;
 public class BleDevicePicker extends ListActivity {
     private final String TAG = "BleDevicePicker";
     private final int SCAN_PERIOD = 10000;// 10s
+    private final int AUTO_CONNECT = 2000;// 2s
     private boolean ifScanning = false;
     private Handler mHandler = new Handler();
     private LeDeviceListAdapter mLeDeviceListAdapter;
@@ -115,6 +116,17 @@ public class BleDevicePicker extends ListActivity {
 
             mLeDeviceListAdapter.clear();
             mLeDeviceListAdapter.notifyDataSetChanged();
+
+            // Auto connect to the device when only one valid device name in the list
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (mLeDeviceListAdapter.getCount() == 1){
+                        onListItemClick(null, null, 0, 0);
+                    }
+                }
+            }, AUTO_CONNECT);
+
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
                 @Override
