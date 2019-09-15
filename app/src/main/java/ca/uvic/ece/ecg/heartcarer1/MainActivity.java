@@ -44,7 +44,7 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
-    private String[] mTitles = new String[6];
+    private String[] mTitles = new String[3];
     private int curDrawerPos = 0;
     public static BluetoothAdapter mBluetoothAdapter;
     private Messenger ServiceMessenger;
@@ -120,11 +120,14 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
 
     private void initTitles() {
         mTitles[0] = getResources().getString(R.string.main_hrm);
-        mTitles[1] = getResources().getString(R.string.main_data);
-        mTitles[2] = getResources().getString(R.string.main_settings);
-        mTitles[3] = getResources().getString(R.string.main_about);
-        mTitles[4] = getResources().getString(R.string.main_mydoctors);
-        mTitles[5] = getResources().getString(R.string.main_exit);
+        mTitles[1] = getResources().getString(R.string.main_notes);
+        mTitles[2] = getResources().getString(R.string.main_exit);
+
+//        mTitles[1] = getResources().getString(R.string.main_data);
+//        mTitles[2] = getResources().getString(R.string.main_settings);
+//        mTitles[3] = getResources().getString(R.string.main_about);
+//        mTitles[4] = getResources().getString(R.string.main_mydoctors);
+//        mTitles[5] = getResources().getString(R.string.main_exit);
 
     }
 
@@ -179,13 +182,15 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
         if (title.equals(mTitles[0]))
             tmp = R.drawable.hrmonitor_64;
         else if (title.equals(mTitles[1]))
-            tmp = R.drawable.clouddata_128;
-        else if (title.equals(mTitles[2]))
-            tmp = R.drawable.setting_128;
-        else if (title.equals(mTitles[3]))
-            tmp = R.drawable.about_64;
-        else if (title.equals(mTitles[4]))
-            tmp = R.drawable.doctor;
+            tmp = R.drawable.report;
+//        else if (title.equals(mTitles[1]))
+//            tmp = R.drawable.clouddata_128;
+//        else if (title.equals(mTitles[2]))
+//            tmp = R.drawable.setting_128;
+//        else if (title.equals(mTitles[3]))
+//            tmp = R.drawable.about_64;
+//        else if (title.equals(mTitles[4]))
+//            tmp = R.drawable.doctor;
         getActionBar().setIcon(tmp);
     }
 
@@ -209,31 +214,34 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
             getFragmentManager().beginTransaction().replace(R.id.content_frame, new HrmFragment(), mTitles[position])
                     .commit();
         } else {
-            if (position == 5) {
+            if (position == 2) {
                 mDrawerLayout.closeDrawer(mDrawerList);
                 mDrawerList.setItemChecked(curDrawerPos, true);
                 Global.exitDialog(MainActivity.this);
                 return;
             }
-            if ((!Global.ifRegUser) && (position == 1 || position == 2 || position == 4)) {
-                Global.toastMakeText(MainActivity.this, getResources().getString(R.string.avail));
-                mDrawerList.setItemChecked(curDrawerPos, true);
-                return;
-            }
+//            if ((!Global.ifRegUser) && (position == 1 || position == 2 || position == 4)) {
+//                Global.toastMakeText(MainActivity.this, getResources().getString(R.string.avail));
+//                mDrawerList.setItemChecked(curDrawerPos, true);
+//                return;
+//            }
             if (position != curDrawerPos) {
                 curDrawerPos = position;
                 isNewFragment = true;
                 Fragment tmp = null;
                 if (position == 0)
                     tmp = new HrmFragment();
-                else if (position == 1)
-                    tmp = new DataManageFragment();
-                else if (position == 2)
-                    tmp = new SettingFragment();
-                else if (position == 3)
-                    tmp = new AboutFragment();
-                else if (position == 4)
-                    tmp = new DoctorList();
+                else if(position == 1)
+                    tmp = new PatientNotesFragment();
+
+//                else if (position == 1)
+//                    tmp = new DataManageFragment();
+//                else if (position == 2)
+//                    tmp = new SettingFragment();
+//                else if (position == 3)
+//                    tmp = new AboutFragment();
+//                else if (position == 4)
+//                    tmp = new DoctorList();
                 getFragmentManager().beginTransaction().replace(R.id.content_frame, tmp, mTitles[position]).commit();
             }
             mDrawerLayout.closeDrawer(mDrawerList);
@@ -267,7 +275,7 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
     private class MyListAdapter extends BaseAdapter {
         private String[] mList;
         private LayoutInflater inflater;
-        private Bitmap BM_hrm, BM_settings, BM_data, BM_exit, BM_about, BM_DocList;
+        private Bitmap BM_hrm, BM_settings, BM_data, BM_exit, BM_about, BM_DocList,BM_note;
 
         public MyListAdapter(Context context, String[] mL) {
             mList = mL;
@@ -276,6 +284,7 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
             BM_hrm = BitmapFactory.decodeResource(res, R.drawable.hrmonitor_64);
             BM_settings = BitmapFactory.decodeResource(res, R.drawable.setting_64);
             BM_data = BitmapFactory.decodeResource(res, R.drawable.clouddata_64);
+            BM_note = BitmapFactory.decodeResource(res, R.drawable.report);
             // BM_profile =
             // BitmapFactory.decodeResource(res,R.drawable.personal_64);
             // BM_noti =
@@ -316,15 +325,19 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
             if (position == 0)
                 holder.icon.setImageBitmap(BM_hrm);
             else if (position == 1)
-                holder.icon.setImageBitmap(BM_data);
-            else if (position == 2)
-                holder.icon.setImageBitmap(BM_settings);
+                holder.icon.setImageBitmap(BM_note);
+            //else if (position == 1)
+                //holder.icon.setImageBitmap(BM_data);
+            //else if (position == 2)
+
+               // holder.icon.setImageBitmap(BM_settings);
             // else if(position==3) holder.icon.setImageBitmap(BM_noti);
             // else if(position==4) holder.icon.setImageBitmap(BM_general);
-            else if (position == 3)
-                holder.icon.setImageBitmap(BM_about);
-            else if (position == 4)
-                holder.icon.setImageBitmap(BM_DocList);
+
+            //else if (position == 3)
+                //holder.icon.setImageBitmap(BM_about);
+            //else if (position == 4)
+                //holder.icon.setImageBitmap(BM_DocList);
             else
                 holder.icon.setImageBitmap(BM_exit);
             return convertView;
