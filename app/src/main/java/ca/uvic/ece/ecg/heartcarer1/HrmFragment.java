@@ -152,9 +152,6 @@ public class HrmFragment extends Fragment {
         case R.id.sensorinfo:
             sensorInfo();
             return true;
-        case R.id.selectchannel:
-            selectChannel();
-            return true;
         }
         return false;
     }
@@ -272,10 +269,9 @@ public class HrmFragment extends Fragment {
 
     // Initiate chart
     private void initChart() {
-        Global.Channel_selection = 0;
-        SingleChartFragment SingleChartFragment = new SingleChartFragment();
+        Global.Channel_selection = 2;
         getFragmentManager().beginTransaction()
-                .replace(R.id.chart, SingleChartFragment, getResources().getString(R.string.Single_Chart_Fragment))
+                .replace(R.id.chart, new DoubleChartFragment(), getResources().getString(R.string.Double_Chart_Fragment))
                 .commit();
     }
 
