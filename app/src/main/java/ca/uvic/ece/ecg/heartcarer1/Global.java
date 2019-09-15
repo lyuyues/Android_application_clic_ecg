@@ -100,6 +100,7 @@ public final class Global {
     public static String folder;
     public static String emergencynum;
     public static String emergencymes;
+    public static String notesmes;
     public static boolean ifSendSms;
     public static boolean ifAppendLoc;
     public static boolean ifHrmFragmentAlive;
@@ -331,6 +332,7 @@ public final class Global {
             userid = jso.getInt("userid");
             emergencynum = jso.getString("emergencynum");
             emergencymes = jso.getString("emergencymes");
+            notesmes = jso.getString("notesmes");
             ifSendSms = jso.getBoolean("ifsendsms");
             ifAppendLoc = jso.getBoolean("ifappendloc");
             ifCsMode = jso.getBoolean("ifcsmode");
