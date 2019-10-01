@@ -70,7 +70,8 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate()");
         setContentView(R.layout.main_activity);
-        final String userName = getIntent().getStringExtra("userName");
+        final String userName = getIntent().getStringExtra("userName") == null
+                ? "" : getIntent().getStringExtra("userName");
         initTitles();
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
