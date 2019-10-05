@@ -36,7 +36,7 @@ public final class Global {
     // public static final String WebServiceUrl =
     // "http://134.87.151.50:8080/RestWebService/rest/MOBILE";
     // Lab server address: Nginx
-    public static final String WebServiceUrl = "http://ecg.ece.uvic.ca/rest/MOBILE";
+    public static final String WebServiceUrl = "http://ecg.uvic.ca:8080/v1/test/";
     // "http://ecg.ece.uvic.ca/rest";*/
     // Lab server address: Django
 
@@ -73,6 +73,7 @@ public final class Global {
     public static String username;
     public static final String sharePassword = "password";
     public static final int access_request = 0; // number of access request
+    public static String token = "";
     public static final int fft_num = 8192;
     public static final int block_num = 1024;
     public static boolean ifUploading;
