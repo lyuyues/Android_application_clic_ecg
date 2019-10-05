@@ -75,6 +75,7 @@
     <string name="main_about">About</string>
     <string name="main_mydoctors">MyDoctors</string>
     <string name="main_exit">Exit</string>
+    <string name="main_notes">Notes</string>
     <string name="main_hi">Hi</string>
     <string name="main_welcome">", welcome to use "</string>
     <string name="main_pressback">Press back button again to return to home!</string>

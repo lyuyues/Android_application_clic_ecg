@@ -97,28 +97,38 @@ public class Login extends Activity {
 		proDialog = ProgressDialog.show
 				(Login.this, getResources().getString(R.string.login_check), "", true, false);
 		new Thread(){
-	    	public void run(){
-	    		webResult = getResources().getString(R.string.noresponse);
-	    		String url = Global.WebServiceUrl + "/getcurversion/";
-	        	HttpParams hPara = new BasicHttpParams();
-	            HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
-	            HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
-	            HttpClient hClient = new DefaultHttpClient(hPara);
-	            HttpResponse response = null;
-	            HttpGet httpGet = new HttpGet(url);
-	            try {
-	    			response = hClient.execute(httpGet);
-	                if(response != null){
-	                	BufferedReader rd = new BufferedReader(new InputStreamReader
-	                			(response.getEntity().getContent()));
-	                	webResult = rd.readLine();
-	                }
-	    		} catch (Exception e) {
-	    			e.printStackTrace();
-	    		}
-            	proDialog.dismiss();
-            	handler.sendEmptyMessage(1);
-	    	}
+	    	public void run() {
+				webResult = getResources().getString(R.string.noresponse);
+				String url = Global.WebServiceUrl + "/getcurversion/";
+				HttpParams hPara = new BasicHttpParams();
+				HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
+				HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
+				HttpClient hClient = new DefaultHttpClient(hPara);
+				HttpResponse response = null;
+				HttpGet httpGet = new HttpGet(url);
+				try {
+					response = hClient.execute(httpGet);
+					if (response != null) {
+						BufferedReader rd = new BufferedReader(new InputStreamReader
+								(response.getEntity().getContent()));
+						webResult = rd.readLine();
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				proDialog.dismiss();
+				handler.sendEmptyMessage(1);
+
+
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						button_login.performClick();
+					}
+				});
+
+			}
+
 	    }.start();
 	}
 	private void findViewsById() {
@@ -137,9 +147,14 @@ public class Login extends Activity {
 	//Log in using Username and Password
 	private OnClickListener loginListener = new OnClickListener(){
     	public void onClick(View v){
-    		final String userName = edittext_username.getText().toString();
-    		Global.username=userName;
-    		final String passWord = edittext_password.getText().toString();
+//     		final String userName = edittext_username.getText().toString();
+//    		Global.username=userName;
+//    		final String passWord = edittext_password.getText().toString();
+
+			final String userName = "test1";
+			Global.username = userName;
+			final String passWord = "test1";
+
     		share.edit().putString(Global.shareUsername, userName).commit();
     		share.edit().putString(Global.sharePassword, 
     				checkbox_remember.isChecked() ? passWord : "").commit();
