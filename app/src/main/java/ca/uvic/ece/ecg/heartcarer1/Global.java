@@ -74,6 +74,8 @@ public final class Global {
     public static final String sharePassword = "password";
     public static final int access_request = 0; // number of access request
     public static String token = "";
+    public static int frequency = 5;
+    public static boolean containData = false;
     public static final int fft_num = 8192;
     public static final int block_num = 1024;
     public static boolean ifCsMode;
@@ -129,21 +131,13 @@ public final class Global {
         return false;
     }
 
-    /**
-     * Check if wifi is available
-     *
-     * @param mContext:
-     *            Current Context
-     * @return True if wifi is connected
-     */
-    public static final boolean isWifiConn(Context mContext) {
-        ConnectivityManager connMgr = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connMgr != null) {
-            NetworkInfo networkInfo = connMgr.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-            if (networkInfo != null)
-                return networkInfo.isConnected();
-        }
-        return false;
+    static boolean isWifiConnected(Context mContext) {
+        Object service = mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (!(service instanceof ConnectivityManager))
+            return false;
+
+        NetworkInfo networkInfo = ((ConnectivityManager) service).getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        return null != networkInfo && networkInfo.isConnected();
     }
 
     /**
@@ -296,7 +290,7 @@ public final class Global {
         // General Settings
         ifCsMode = false;
         ifTurnOffBt = true;
-        savingLength = 60 * 1000;// 1min
+        savingLength = frequency * 1000;// 1min
         lowBpm = 40;
         highBpm = 100;
         ifFbUser = false;
@@ -360,6 +354,11 @@ public final class Global {
         new File(downloadPath).mkdir();
         new File(gqrsTempPath).mkdir();
         new File(quickcheckpath).mkdir();
+    }
+
+    public static void updateFrequency(int frequency) {
+        Global.frequency = frequency;
+        Global.savingLength = frequency * 1000;
     }
 
     public static double getYAxisMin() {

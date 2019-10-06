@@ -2,15 +2,11 @@ package ca.uvic.ece.ecg.heartcarer1;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -88,7 +84,6 @@ public class BleService extends Service {
     private int pointer_HR = 0;
     private int pointerBuf = 0;
     private OutputStream output;
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault());
     private String saveFileName;
     private Timer timerSavingFile = null;
     private TimerTask taskTimerSavingFile = null;
@@ -164,17 +159,10 @@ public class BleService extends Service {
         super.onDestroy();
     }
 
-    // When wifi is connected, upload saved files
     private BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context arg0, Intent intent) {
-            Object service = getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (!(service instanceof ConnectivityManager))
-                return;
-
-            NetworkInfo networkInfo = ((ConnectivityManager) service).getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_WIFI)
-                startService(new Intent(BleService.this, UpdataService.class));
+            startService(new Intent(BleService.this, UpdataService.class));
         }
     };
 
@@ -242,7 +230,7 @@ public class BleService extends Service {
                 if (Global.ifSaving) {
                     stopSavingFinal();
                 } else {
-                    startSaving(true);
+                    startSaving();
                     startTimerSavingFile();
                     toastMakeText("Start saving!");
                 }
@@ -256,7 +244,7 @@ public class BleService extends Service {
                 if (Global.ifSaving) {
                     stopSavingFinal();
                 } else {
-                    startSaving(true);
+                    startSaving();
                     toastMakeText("Start saving!");
                 }
             }
@@ -285,15 +273,10 @@ public class BleService extends Service {
     }
 
     // Start saving ECG data to file
-    private void startSaving(boolean iffirst) {
+    private void startSaving() {
         Log.v(TAG, "startSaving()");
 
-        String testtime = iffirst ? sdf.format(new Date(System.currentTimeMillis())) : Global.testtime;
-        if (iffirst)
-            Global.testtime = testtime;
-        String iffirst_int = iffirst ? "1" : "0";
-        saveFileName = sdf.format(new Date(System.currentTimeMillis())) + (Global.ifCsMode ? "1" : "0") + testtime
-                + iffirst_int + ".bin";
+        saveFileName = System.currentTimeMillis() + ".bin";
         try {
             output = new BufferedOutputStream(new FileOutputStream(Global.cachePath + "/" + saveFileName));
         } catch (Exception ignore) {
@@ -325,8 +308,9 @@ public class BleService extends Service {
             e.printStackTrace();
             toastMakeText("Error: Stop saving!");
         }
-        if (Global.isWifiConn(BleService.this))
-            startService(new Intent(BleService.this, UpdataService.class));
+
+        startService(new Intent(BleService.this, UpdataService.class));
+
         System.gc();
     }
 
@@ -371,7 +355,7 @@ public class BleService extends Service {
 
                 ConState = ConState_Connected;
                 if (Global.ifSaving && !Global.quick_testing) {
-                    startSaving(false);
+                    startSaving();
                     startTimerSavingFile();
                 }
 
@@ -572,9 +556,11 @@ public class BleService extends Service {
                 @Override
                 public void run() {
                     handlerTimer.sendEmptyMessage(0);
+
+                    timerSavingFile.schedule(taskTimerSavingFile, Global.savingLength);
                 }
             };
-        timerSavingFile.scheduleAtFixedRate(taskTimerSavingFile, Global.savingLength, Global.savingLength);
+        timerSavingFile.schedule(taskTimerSavingFile, Global.savingLength);
     }
 
     // Start Timer for saving ECG data to file
@@ -594,7 +580,7 @@ public class BleService extends Service {
         @Override
         public void handleMessage(Message msg) {
             stopSaving();
-            startSaving(false);
+            startSaving();
         }
     };
 

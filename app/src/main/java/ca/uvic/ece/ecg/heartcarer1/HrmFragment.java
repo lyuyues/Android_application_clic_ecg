@@ -315,6 +315,8 @@ public class HrmFragment extends Fragment {
                         return;
 
                     Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
+
+                    getActivity().startService(new Intent(getActivity(), UpdataService.class));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
