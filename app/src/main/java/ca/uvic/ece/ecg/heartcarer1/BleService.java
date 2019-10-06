@@ -2,15 +2,11 @@ package ca.uvic.ece.ecg.heartcarer1;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -37,7 +33,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -49,8 +44,6 @@ import android.util.Log;
 
 import com.google.common.collect.EvictingQueue;
 
-//This Service runs after logging in and ends when exiting app
-@SuppressLint("HandlerLeak")
 public class BleService extends Service {
     // 0-Not Connected; 1-Connected; 2-Connecting
     public static int ConState;
@@ -68,15 +61,12 @@ public class BleService extends Service {
     public static final int STATE_MULTI_VAL = 8;
 
     public static boolean enableNoti;
-    public static boolean ifDraw;
     public static BluetoothDevice mDevice;
     private HR_FFT hr = new HR_FFT();
     private HR_detect hrd = new HR_detect();
     private final String TAG = "BleService";
     private Messenger ActivityMessenger;
     private BluetoothGatt mBluetoothGatt;
-    private BluetoothGattCharacteristic characteristic;
-    private BluetoothGattDescriptor descriptor;
     private final int buf_length = 1024 * 1024;
     private byte[] buffer = new byte[buf_length];
     private final int buf_hr_length = 3750;
@@ -88,10 +78,8 @@ public class BleService extends Service {
     private int pointer_HR = 0;
     private int pointerBuf = 0;
     private OutputStream output;
-    private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault());
     private String saveFileName;
     private Timer timerSavingFile = null;
-    private TimerTask taskTimerSavingFile = null;
     private boolean ifHbNormal = true;
     private Handler mHandler = new Handler();
     private Vibrator vibrator;
@@ -113,7 +101,6 @@ public class BleService extends Service {
     private void initStatic() {
         ConState = ConState_NotConnected;
         enableNoti = true;
-        ifDraw = Global.ifCsMode ? false : true;
         Global.ifSaving = false;
         mDevice = null;
     }
@@ -164,17 +151,10 @@ public class BleService extends Service {
         super.onDestroy();
     }
 
-    // When wifi is connected, upload saved files
     private BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context arg0, Intent intent) {
-            Object service = getSystemService(Context.CONNECTIVITY_SERVICE);
-            if (!(service instanceof ConnectivityManager))
-                return;
-
-            NetworkInfo networkInfo = ((ConnectivityManager) service).getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_WIFI)
-                startService(new Intent(BleService.this, UpdataService.class));
+            startService(new Intent(BleService.this, UpdataService.class));
         }
     };
 
@@ -242,7 +222,7 @@ public class BleService extends Service {
                 if (Global.ifSaving) {
                     stopSavingFinal();
                 } else {
-                    startSaving(true);
+                    startSaving();
                     startTimerSavingFile();
                     toastMakeText("Start saving!");
                 }
@@ -256,7 +236,7 @@ public class BleService extends Service {
                 if (Global.ifSaving) {
                     stopSavingFinal();
                 } else {
-                    startSaving(true);
+                    startSaving();
                     toastMakeText("Start saving!");
                 }
             }
@@ -285,15 +265,10 @@ public class BleService extends Service {
     }
 
     // Start saving ECG data to file
-    private void startSaving(boolean iffirst) {
+    private void startSaving() {
         Log.v(TAG, "startSaving()");
 
-        String testtime = iffirst ? sdf.format(new Date(System.currentTimeMillis())) : Global.testtime;
-        if (iffirst)
-            Global.testtime = testtime;
-        String iffirst_int = iffirst ? "1" : "0";
-        saveFileName = sdf.format(new Date(System.currentTimeMillis())) + (Global.ifCsMode ? "1" : "0") + testtime
-                + iffirst_int + ".bin";
+        saveFileName = System.currentTimeMillis() + ".bin";
         try {
             output = new BufferedOutputStream(new FileOutputStream(Global.cachePath + "/" + saveFileName));
         } catch (Exception ignore) {
@@ -325,8 +300,9 @@ public class BleService extends Service {
             e.printStackTrace();
             toastMakeText("Error: Stop saving!");
         }
-        if (Global.isWifiConn(BleService.this))
-            startService(new Intent(BleService.this, UpdataService.class));
+
+        startService(new Intent(BleService.this, UpdataService.class));
+
         System.gc();
     }
 
@@ -353,10 +329,7 @@ public class BleService extends Service {
                 if (Global.ifSaving) {
                     stopSavingFinal();
 
-                    if (!Global.quick_testing) {
-                        Global.ifSaving = true;
-                        reconnect();
-                    }
+                    reconnect();
                 }
             }
         }
@@ -370,8 +343,8 @@ public class BleService extends Service {
                 initNoti();
 
                 ConState = ConState_Connected;
-                if (Global.ifSaving && !Global.quick_testing) {
-                    startSaving(false);
+                if (Global.ifSaving) {
+                    startSaving();
                     startTimerSavingFile();
                 }
 
@@ -394,7 +367,7 @@ public class BleService extends Service {
                 }
             }
 
-            if (!ifDraw || !Global.ifHrmFragmentAlive)
+            if (!Global.ifHrmFragmentAlive)
                 return;
 
             int[] multiValue = new int[8];
@@ -493,25 +466,22 @@ public class BleService extends Service {
         for (Byte b : gqrsHRQueue)
             bufferHRGqrsInThread[i++] = b;
 
-        AsyncTask.execute(new Runnable() {
-            @Override
-            public void run() {
-                int bpm = -1;
-                if (hrd.begin(buffer_HR_list_thread)) {
-                    bpm = (int) hrd.getHR();
-                }
-                buffer_HR_list_thread.clear();
-                hrd.reset();
-
-                int bpmGqrs = -1;
-                try {
-                    bpmGqrs = GqrsProcess.gqrsProcess(bufferHRGqrsInThread);
-                } catch (Exception ignore) {
-                }
-
-                updateBeat(bpm, bpmGqrs);
-                ifHbNormal = !ifHbNormal || bpmGqrs >= Global.lowBpm;
+        AsyncTask.execute(() -> {
+            int bpm = -1;
+            if (hrd.begin(buffer_HR_list_thread)) {
+                bpm = (int) hrd.getHR();
             }
+            buffer_HR_list_thread.clear();
+            hrd.reset();
+
+            int bpmGqrs = -1;
+            try {
+                bpmGqrs = GqrsProcess.gqrsProcess(bufferHRGqrsInThread);
+            } catch (Exception ignore) {
+            }
+
+            updateBeat(bpm, bpmGqrs);
+            ifHbNormal = !ifHbNormal || bpmGqrs >= Global.lowBpm;
         });
     }
 
@@ -553,9 +523,9 @@ public class BleService extends Service {
 
     // Initiate for Notification receiving
     private void initNoti() {
-        characteristic = mBluetoothGatt.getService(UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb"))
+        BluetoothGattCharacteristic characteristic = mBluetoothGatt.getService(UUID.fromString("0000180d-0000-1000-8000-00805f9b34fb"))
                 .getCharacteristic(UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb"));
-        descriptor = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
+        BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
         descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
 
         mBluetoothGatt.setCharacteristicNotification(characteristic, enableNoti);
@@ -563,43 +533,43 @@ public class BleService extends Service {
         enableNoti = !enableNoti;
     }
 
-    // Start Timer for saving ECG data to file
     private void startTimerSavingFile() {
         if (timerSavingFile == null)
             timerSavingFile = new Timer();
-        if (taskTimerSavingFile == null)
-            taskTimerSavingFile = new TimerTask() {
-                @Override
-                public void run() {
-                    handlerTimer.sendEmptyMessage(0);
-                }
-            };
-        timerSavingFile.scheduleAtFixedRate(taskTimerSavingFile, Global.savingLength, Global.savingLength);
+
+        timerSavingFile.schedule(new SaveFileTimerTask(), Global.savingLength);
     }
 
-    // Start Timer for saving ECG data to file
     private void cancelTimerSavingFile() {
         if (timerSavingFile != null) {
             timerSavingFile.cancel();
             timerSavingFile = null;
         }
-        if (taskTimerSavingFile != null) {
-            taskTimerSavingFile.cancel();
-            taskTimerSavingFile = null;
+    }
+
+    private class SaveFileTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            handlerTimer.sendEmptyMessage(0);
+
+            if (null != timerSavingFile) {
+                try {
+                    timerSavingFile.schedule(new SaveFileTimerTask(), Global.savingLength);
+                } catch (IllegalStateException ignore) {
+                }
+            }
         }
     }
 
-    // Handler which stops previous saving and starts a new one
     private Handler handlerTimer = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             stopSaving();
-            startSaving(false);
+            startSaving();
         }
     };
 
-    // Use mHandler to make toast text asynchronously
-    private final void toastMakeText(final String string) {
+    private void toastMakeText(final String string) {
         mHandler.post(() -> Global.toastMakeText(BleService.this, string));
     }
 }

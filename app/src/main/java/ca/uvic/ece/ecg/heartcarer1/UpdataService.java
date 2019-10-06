@@ -2,12 +2,11 @@ package ca.uvic.ece.ecg.heartcarer1;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.InputStreamReader;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -19,6 +18,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.IntentService;
@@ -30,8 +30,10 @@ import android.util.Log;
  */
 public class UpdataService extends IntentService {
     private static final String TAG = "UpdataService";
-    private static final Object lock = new Object();
-    private static final int MinLength = 1250; // 1s
+    private static final Object LOCK = new Object();
+    private static final int MIN_LENGTH = 1250; // 1s
+
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
     public UpdataService() {
         super("UpdataService");
@@ -39,78 +41,79 @@ public class UpdataService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent arg0) {
-        Log.v(TAG, "onHandleIntent(Intent intent)");
+        Log.v(TAG, "onHandleIntent()");
 
-        synchronized (lock) {
+        if (Global.token == null || Global.token.isEmpty())
+            return;
+
+        if (!Global.isWifiConnected(UpdataService.this))
+            return;
+
+        synchronized (LOCK) {
             FilenameFilter filter = (dir, filename) -> filename.endsWith(".bin");
             File[] files = new File(Global.savedPath).listFiles(filter);
             if (null == files)
                 return;
 
-            for (File upFile : files) {
-                Log.v(TAG, "File name: " + upFile.getName());
+            for (File file : files) {
+                String fileName = file.getName();
+                Log.v(TAG, "File name: " + fileName);
 
-                boolean ifcs = (String.valueOf(upFile.getName().charAt(14)).equals("1"));
-                String iffirst = String.valueOf(upFile.getName().charAt(29));
-                if (upFile.length() < MinLength && !ifcs)
+                if (file.length() < MIN_LENGTH)
                     continue;
-                String result = getResources().getString(R.string.noresponse);
-                String url = Global.WebServiceUrl + "/updata/";
-                HttpParams hPara = new BasicHttpParams();
-                HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
-                HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
-                HttpClient hClient = new DefaultHttpClient(hPara);
-                HttpResponse response = null;
-                HttpPost httppost = new HttpPost(url);
-                try {
-                    MultipartEntity outEntity = new MultipartEntity();
-                    outEntity.addPart("iffirst", new StringBody(iffirst));
-                    // set up datapath according to dataid
-                    String filepath = Global.savedPath + "/" + "tmp.zip";
-                    FileOutputStream zipin = new FileOutputStream(filepath);
-                    ZipOutputStream zipout = new ZipOutputStream(zipin);
-                    ZipEntry ze = new ZipEntry("file");
-                    zipout.putNextEntry(ze);
-                    FileInputStream input = new FileInputStream(upFile);
-                    int temp = 0;
-                    while ((temp = input.read()) != -1) {
-                        zipout.write(temp);
-                    }
-                    input.close();
-                    zipout.closeEntry();
-                    zipout.close();
 
-                    File upload = new File(filepath);
-                    outEntity.addPart("content", new FileBody(upload));
-                    outEntity.addPart("Dynamic_id", new StringBody(String.valueOf(Global.Dynamic_id)));
-                    outEntity.addPart("starttime", new StringBody(upFile.getName().substring(0, 14)));
-                    outEntity.addPart("testtime", new StringBody(String.valueOf(upFile.getName().substring(15, 29))));
-                    outEntity.addPart("length", new StringBody(String.valueOf(ifcs
-                            ? 4 * Integer.valueOf(upFile.getName().substring(23, upFile.getName().lastIndexOf(".")))
-                            : ((int) upFile.length()) / 1250))); // 1250 = 250Hz * 5 bytes per sample(including 2 channels)
-                    outEntity.addPart("ifcs", new StringBody(String.valueOf(ifcs)));
+                try {
+                    long startTimeSec = Long.valueOf(fileName.substring(0, fileName.indexOf(".bin")));
+                    String startTime = sdf.format(new Date(startTimeSec));
+                    String endTime = sdf.format(new Date(file.lastModified()));
+
+                    JSONObject paraOut = new JSONObject();
+                    paraOut.put("startTime", startTime)
+                            .put("endTime", endTime);
+
+                    MultipartEntity outEntity = new MultipartEntity();
+                    outEntity.addPart("newData", new StringBody(paraOut.toString()));
+                    outEntity.addPart("file", new FileBody(file));
+
+                    HttpPost httppost = new HttpPost(Global.WebServiceUrl + "patient/ecg-test/ecg-raw-data");
+                    httppost.addHeader("verificationcode", Global.token);
                     httppost.setEntity(outEntity);
-                    response = hClient.execute(httppost);
-                    if (response != null) {
-                        StringBuilder total = new StringBuilder();
-                        BufferedReader rd = new BufferedReader(
-                                new InputStreamReader(response.getEntity().getContent()));
-                        String line;
-                        while ((line = rd.readLine()) != null) {
-                            total.append(line);
-                        }
-                        JSONObject jso = new JSONObject(total.toString());
-                        result = jso.getString("result");
-                    }
-                    Log.v(TAG, result);
-                    if (result.equals("Success: Updata!") || result.equals("Data already existed in database!")) {
-                        boolean flag = upFile.delete() && upload.delete();
-                        System.out.print(flag);
-                    }
+
+                    HttpParams hPara = new BasicHttpParams();
+                    HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
+                    HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
+
+                    HttpClient hClient = new DefaultHttpClient(hPara);
+                    HttpResponse response = hClient.execute(httppost);
+
+                    if (200 != response.getStatusLine().getStatusCode())
+                        continue;
+
+                    StringBuilder total = new StringBuilder();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                    String line;
+                    while ((line = rd.readLine()) != null)
+                        total.append(line);
+
+                    // check if the response succeed
+                    JSONObject jso = new JSONObject(total.toString());
+                    if(!"OK.".equals(jso.getString("errorMessage")))
+                        continue;
+
+                    Global.updateFrequency(getModel(jso).getInt("frequency"));
+                    Global.containData = getModel(jso).getBoolean("containData");
+
+                    //noinspection ResultOfMethodCallIgnored
+                    file.delete();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
+    }
+
+    JSONObject getModel(JSONObject jso)
+            throws JSONException {
+        return jso.getJSONObject("entity").getJSONObject("model");
     }
 }
