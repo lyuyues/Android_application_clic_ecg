@@ -112,12 +112,6 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
         bindService(new Intent(MainActivity.this, BleService.class), mConn, Context.BIND_AUTO_CREATE);
         startService(new Intent(MainActivity.this, BleService.class));
         mBluetoothAdapter = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
-        Global.toastMakeText(MainActivity.this,
-                getResources().getString(R.string.main_hi) + (userName.equals("") ? "" : (" " + userName))
-                        + getResources().getString(R.string.main_welcome) + getResources().getString(R.string.app_name)
-                        + "!");
-        Memory_Managemnt_Util memory = new Memory_Managemnt_Util();
-        memory.Memory_management();
     }
 
     private void initTitles() {

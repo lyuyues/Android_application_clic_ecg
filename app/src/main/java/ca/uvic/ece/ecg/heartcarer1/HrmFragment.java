@@ -282,7 +282,6 @@ public class HrmFragment extends Fragment {
 
     // Initiate chart
     private void initChart() {
-        Global.Channel_selection = 2;
         getFragmentManager()
                 .beginTransaction()
                 .replace(R.id.chart, new DoubleChartFragment(), getResources().getString(R.string.Double_Chart_Fragment))
