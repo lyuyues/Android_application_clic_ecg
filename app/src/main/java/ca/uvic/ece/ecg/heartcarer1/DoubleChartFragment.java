@@ -17,8 +17,6 @@ import ca.uvic.ece.ecg.ECG.DataFilter;
  *
  */
 public class DoubleChartFragment extends Fragment {
-    private View view;
-
     private ECGChart ecgChart1;
     private ECGChart ecgChart2;
 
@@ -27,7 +25,7 @@ public class DoubleChartFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.two_chart_fragment, container, false);
+        View view = inflater.inflate(R.layout.two_chart_fragment, container, false);
 
         ecgChart1 = new ECGChart(getActivity(), Global.yAxis_Min_Channel1, Global.yAxis_Max_Channel1, getResources().getString(R.string.ecgsignal1));
         ecgChart1.addToLayout((LinearLayout) view.findViewById(R.id.chart1),
