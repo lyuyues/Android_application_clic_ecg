@@ -92,15 +92,13 @@ import java.text.SimpleDateFormat;
         public void onClick(View v){
             Global.emergencymes = edittext_message.getText().toString();
             Global.notesmes = note_message.getText().toString();
-            if(Global.ifSendSms){
-                if(Global.emergencymes.length() > 100){
-                    Global.toastMakeText(getActivity(), "Length of Message should be 0-100!");
-                    return;
-                }
-                if(Global.notesmes.length() > 500){
-                    Global.toastMakeText(getActivity(), "Length of Message should be 0-500!");
-                    return;
-                }
+            if(Global.emergencymes.length() > 100){
+                Global.toastMakeText(getActivity(), "Length of Message should be 0-100!");
+                return;
+            }
+            if(Global.notesmes.length() > 500){
+                Global.toastMakeText(getActivity(), "Length of Message should be 0-500!");
+                return;
             }
             if(!Global.isNetworkConn(getActivity())){
                 Global.toastMakeText(getActivity(), getResources().getString(R.string.nointernet) + "\nSaved in local!");
@@ -123,8 +121,6 @@ import java.text.SimpleDateFormat;
                         paraOut.put("emergencynum", Global.emergencynum);
                         paraOut.put("emergencymes", Global.emergencymes);
                         paraOut.put("notesmes", Global.notesmes);
-                        paraOut.put("ifSendSms", Global.ifSendSms);
-                        paraOut.put("ifAppendLoc", Global.ifAppendLoc);
                         StringEntity se = new StringEntity(paraOut.toString());
                         se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
                         httppost.setEntity(se);

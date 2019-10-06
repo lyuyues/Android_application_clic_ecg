@@ -29,29 +29,27 @@ import android.util.Log;
  * This Service updates saved ECG data to Cloud Server
  */
 public class UpdataService extends IntentService {
-    private final String TAG = "UpdataService";
-    private int MinLength = 1250; // 1s
+    private static final String TAG = "UpdataService";
+    private static final Object lock = new Object();
+    private static final int MinLength = 1250; // 1s
 
     public UpdataService() {
         super("UpdataService");
     }
 
-    // Handle request - upload saved files
     @Override
     protected void onHandleIntent(Intent arg0) {
         Log.v(TAG, "onHandleIntent(Intent intent)");
-        Global.ifUploading = true;
-        FilenameFilter filter = new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String filename) {
-                return filename.endsWith(".bin");
-            }
-        };
 
-        File[] files = new File(Global.savedPath).listFiles(filter);
-        Log.v(TAG, "File number: " + files.length);
-        if (files.length != 0) {
+        synchronized (lock) {
+            FilenameFilter filter = (dir, filename) -> filename.endsWith(".bin");
+            File[] files = new File(Global.savedPath).listFiles(filter);
+            if (null == files)
+                return;
+
             for (File upFile : files) {
+                Log.v(TAG, "File name: " + upFile.getName());
+
                 boolean ifcs = (String.valueOf(upFile.getName().charAt(14)).equals("1"));
                 String iffirst = String.valueOf(upFile.getName().charAt(29));
                 if (upFile.length() < MinLength && !ifcs)
@@ -114,12 +112,5 @@ public class UpdataService extends IntentService {
                 }
             }
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.v(TAG, "onDestroy()");
-
-        Global.ifUploading = false;
     }
 }
