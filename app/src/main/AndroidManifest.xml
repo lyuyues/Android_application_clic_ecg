@@ -41,55 +41,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.Signup"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name" />
-        <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.Login"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:launchMode="singleTop"
-            android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
-        <activity
             android:name="ca.uvic.ece.ecg.heartcarer1.BleDevicePicker"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
             android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.MainActivity" />
-        <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.DataManageList"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.MainActivity" />
-        <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.DataManagePlot"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.DataManageList" />
-        <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.Feedback"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.MainActivity" />
-        <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.DoctorNotes"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.MainActivity" />
-        <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.DoctorNotePlot"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.DoctorNotes" />
-        <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.QuickResult"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.QuickResult" />
-        <activity
-            android:name="ca.uvic.ece.ecg.heartcarer1.Data_statistic"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:parentActivityName="ca.uvic.ece.ecg.heartcarer1.Data_statistic" />
 
         <service android:name="ca.uvic.ece.ecg.heartcarer1.UpdataService" />
         <service android:name="ca.uvic.ece.ecg.heartcarer1.BleService" />

@@ -168,12 +168,13 @@ public class BleService extends Service {
     private BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context arg0, Intent intent) {
-            NetworkInfo networkInfo = ((ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE))
-                    .getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_WIFI && Global.ifRegUser
-                    && !Global.ifUploading) {
+            Object service = getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (!(service instanceof ConnectivityManager))
+                return;
+
+            NetworkInfo networkInfo = ((ConnectivityManager) service).getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_WIFI)
                 startService(new Intent(BleService.this, UpdataService.class));
-            }
         }
     };
 
@@ -324,7 +325,7 @@ public class BleService extends Service {
             e.printStackTrace();
             toastMakeText("Error: Stop saving!");
         }
-        if ((!Global.ifUploading) && Global.isWifiConn(BleService.this))
+        if (Global.isWifiConn(BleService.this))
             startService(new Intent(BleService.this, UpdataService.class));
         System.gc();
     }
@@ -548,18 +549,6 @@ public class BleService extends Service {
                 .build();
         mNotiManager.notify(0, noti);
         vibrator.vibrate(3000);
-        if (Global.ifRegUser && Global.ifSendSms) {
-            if (Global.ifAppendLoc && MainActivity.ifLCConnected) {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        Global.sendSMS(Global.emergencynum, Global.emergencymes + " My current location: ");
-                    }
-                }.start();
-            } else {
-                Global.sendSMS(Global.emergencynum, Global.emergencymes);
-            }
-        }
     }
 
     // Initiate for Notification receiving
@@ -611,11 +600,6 @@ public class BleService extends Service {
 
     // Use mHandler to make toast text asynchronously
     private final void toastMakeText(final String string) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                Global.toastMakeText(BleService.this, string);
-            }
-        });
+        mHandler.post(() -> Global.toastMakeText(BleService.this, string));
     }
 }

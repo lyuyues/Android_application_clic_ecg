@@ -67,9 +67,6 @@ public class Memory_Managemnt_Util  {
     }
 	
 	protected void Memory_management() {
-    	if (!Global.ifRegUser) {
-    		return;
-    	}
     	File file = new File(Global.folder);
     	try {
 			if (getFileSize(file) / 1048576 < Global.max_memory) {

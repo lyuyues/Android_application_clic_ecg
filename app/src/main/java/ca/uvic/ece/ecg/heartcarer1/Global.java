@@ -76,8 +76,6 @@ public final class Global {
     public static String token = "";
     public static final int fft_num = 8192;
     public static final int block_num = 1024;
-    public static boolean ifUploading;
-    public static boolean ifRegUser;
     public static boolean ifCsMode;
     public static boolean ifTurnOffBt;
     // public static boolean ifAutoSave;
@@ -102,8 +100,6 @@ public final class Global {
     public static String emergencynum;
     public static String emergencymes;
     public static String notesmes;
-    public static boolean ifSendSms;
-    public static boolean ifAppendLoc;
     public static boolean ifHrmFragmentAlive;
     public static int access_request_doc;
     public static int doctor_num;
@@ -175,7 +171,7 @@ public final class Global {
      * @return Default intent
      */
     public static final Intent defaultIntent(Context mContext) {
-        return new Intent(mContext, Login.class).setAction(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+        return new Intent(mContext, MainActivity.class).setAction(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
     }
 
     /**
@@ -271,18 +267,6 @@ public final class Global {
     }
 
     /**
-     * Send SMS
-     *
-     * @param num:
-     *            Phone number to send to
-     * @param mes:
-     *            Message to send
-     */
-    public static final void sendSMS(String num, String mes) {
-        SmsManager.getDefault().sendTextMessage(num, null, mes, null, null);
-    }
-
-    /**
      * Add device info, current version and imei to the JsonObject sent to
      * server when logging in
      *
@@ -308,18 +292,29 @@ public final class Global {
      * Initiate some global variables when app starts
      */
     public static final void initiate() {
-        ifRegUser = false;
-        ifUploading = false;
         mToast = null;
         // General Settings
         ifCsMode = false;
         ifTurnOffBt = true;
-        savingLength = 1 * 60 * 1000;// 1min
+        savingLength = 60 * 1000;// 1min
         lowBpm = 40;
         highBpm = 100;
         ifFbUser = false;
         ifGpUser = false;
         max_memory = 500;
+
+        cachePath = RootPath + "/Cache";
+        savedPath = RootPath + "/Saved for upload";
+        downloadPath = RootPath + "/Download";
+        gqrsTempPath = RootPath + "/Temp";
+        quickcheckpath = RootPath + "/Quick check";
+        folder = RootPath;
+        new File(RootPath).mkdir();
+        new File(cachePath).mkdir();
+        new File(savedPath).mkdir();
+        new File(downloadPath).mkdir();
+        new File(gqrsTempPath).mkdir();
+        new File(quickcheckpath).mkdir();
     }
 
     /**
@@ -334,8 +329,6 @@ public final class Global {
             emergencynum = jso.getString("emergencynum");
             emergencymes = jso.getString("emergencymes");
             notesmes = jso.getString("notesmes");
-            ifSendSms = jso.getBoolean("ifsendsms");
-            ifAppendLoc = jso.getBoolean("ifappendloc");
             ifCsMode = jso.getBoolean("ifcsmode");
             ifTurnOffBt = jso.getBoolean("ifturnoffbt");
             savingLength = jso.getInt("savelength");
@@ -352,8 +345,6 @@ public final class Global {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        ifRegUser = true;
 
         String FilePath = RootPath + "/" + String.valueOf(userid);
         cachePath = FilePath + "/Cache";

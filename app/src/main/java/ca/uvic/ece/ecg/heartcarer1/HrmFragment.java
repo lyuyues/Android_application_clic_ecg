@@ -209,11 +209,6 @@ public class HrmFragment extends Fragment {
     private OnClickListener start_test_Listener = new OnClickListener() {
         @Override
         public void onClick(View v) {
-            if (!Global.ifRegUser) {
-                Toast.makeText(getActivity(), "Only for registered User", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
             if (Global.ifSaving) {
                 buttonStartTest.setText("Start Test");
 

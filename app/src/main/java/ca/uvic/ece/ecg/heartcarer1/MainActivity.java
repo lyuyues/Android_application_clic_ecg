@@ -63,12 +63,13 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
     // Local Messenger used to talk to ServiceMessenger, Message received by
     // IncomingHandler
     final Messenger mMessenger = new Messenger(new IncomingHandler());
-    // Location Services
-    public static boolean ifLCConnected = false;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate()");
+
+        Global.initiate();
+
         setContentView(R.layout.main_activity);
         final String userName = getIntent().getStringExtra("userName") == null
                 ? "" : getIntent().getStringExtra("userName");
@@ -319,7 +320,7 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
-            if ((!Global.ifRegUser) && (position == 1 || position == 2 || position == 4)) {
+            if ((position == 1 || position == 2 || position == 4)) {
                 holder.ll.setBackgroundColor(Global.color_Grey);
             }
             holder.title.setText(mList[position]);
