@@ -106,7 +106,7 @@ public final class Global {
         highBpm = 100;
         max_memory = 500;
 
-        final String RootPath = Environment.getExternalStorageDirectory().getPath() + "Heart Carer Data";
+        final String RootPath = Environment.getExternalStorageDirectory().getPath() + "/Heart Carer Data";
         cachePath = RootPath + "/Cache";
         savedPath = RootPath + "/Saved for upload";
         downloadPath = RootPath + "/Download";

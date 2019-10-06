@@ -80,7 +80,6 @@ public class BleService extends Service {
     private OutputStream output;
     private String saveFileName;
     private Timer timerSavingFile = null;
-    private TimerTask taskTimerSavingFile = null;
     private boolean ifHbNormal = true;
     private Handler mHandler = new Handler();
     private Vibrator vibrator;
@@ -537,16 +536,8 @@ public class BleService extends Service {
     private void startTimerSavingFile() {
         if (timerSavingFile == null)
             timerSavingFile = new Timer();
-        if (taskTimerSavingFile == null)
-            taskTimerSavingFile = new TimerTask() {
-                @Override
-                public void run() {
-                    handlerTimer.sendEmptyMessage(0);
 
-                    timerSavingFile.schedule(taskTimerSavingFile, Global.savingLength);
-                }
-            };
-        timerSavingFile.schedule(taskTimerSavingFile, Global.savingLength);
+        timerSavingFile.schedule(new SaveFileTimerTask(), Global.savingLength);
     }
 
     private void cancelTimerSavingFile() {
@@ -554,9 +545,19 @@ public class BleService extends Service {
             timerSavingFile.cancel();
             timerSavingFile = null;
         }
-        if (taskTimerSavingFile != null) {
-            taskTimerSavingFile.cancel();
-            taskTimerSavingFile = null;
+    }
+
+    private class SaveFileTimerTask extends TimerTask {
+        @Override
+        public void run() {
+            handlerTimer.sendEmptyMessage(0);
+
+            if (null != timerSavingFile) {
+                try {
+                    timerSavingFile.schedule(new SaveFileTimerTask(), Global.savingLength);
+                } catch (IllegalStateException ignore) {
+                }
+            }
         }
     }
 
