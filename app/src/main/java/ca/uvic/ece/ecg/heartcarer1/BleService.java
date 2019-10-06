@@ -157,7 +157,7 @@ public class BleService extends Service {
 
         disconnect();
         if (Global.ifSaving) {
-            stopSavingFinal(!Global.quick_testing);
+            stopSavingFinal();
             Global.ifSaving = false;
         }
 
@@ -230,7 +230,7 @@ public class BleService extends Service {
                 disconnect();
 
                 if (Global.ifSaving)
-                    stopSavingFinal(!Global.quick_testing);
+                    stopSavingFinal();
             } else if (i == 4) {
                 // Button - SaveToFile
                 if (ConState != ConState_Connected || enableNoti) {
@@ -239,7 +239,7 @@ public class BleService extends Service {
                 }
 
                 if (Global.ifSaving) {
-                    stopSavingFinal(true);
+                    stopSavingFinal();
                 } else {
                     startSaving(true);
                     startTimerSavingFile();
@@ -253,7 +253,7 @@ public class BleService extends Service {
                 }
 
                 if (Global.ifSaving) {
-                    stopSavingFinal(false);
+                    stopSavingFinal();
                 } else {
                     startSaving(true);
                     toastMakeText("Start saving!");
@@ -303,7 +303,7 @@ public class BleService extends Service {
     }
 
     // Stop saving ECG data to file
-    private void stopSaving(boolean flg) {
+    private void stopSaving() {
         Log.v(TAG, "stopSaving()");
 
         byte[] tempByte;
@@ -317,43 +317,22 @@ public class BleService extends Service {
             output.write(tempByte);
             output.close();
             String oldPath = Global.cachePath + "/" + saveFileName;
-            String newPath;
-            if (flg) {
-                newPath = Global.savedPath + "/" + saveFileName;
-                new File(oldPath).renameTo(new File(newPath));
-            } else {
-                newPath = Global.quickcheckpath + "/" + saveFileName;
-                File file = new File(oldPath);
-                File fileNew = new File(newPath);
-                FileInputStream in = new FileInputStream(file);
-                FileOutputStream out = new FileOutputStream(fileNew);
-                byte[] tmp = new byte[5];
-                try {
-                    while (in.read(tmp) != -1) {
-                        out.write(tmp[3]);
-                        out.write(tmp[4]);
-                    }
-                } finally {
-                    if (null != in)
-                        in.close();
-                    if (null != out)
-                        out.close();
-                    file.delete();
-                }
-            }
+            String newPath = Global.savedPath + "/" + saveFileName;
+            //noinspection ResultOfMethodCallIgnored
+            new File(oldPath).renameTo(new File(newPath));
         } catch (Exception e) {
             e.printStackTrace();
             toastMakeText("Error: Stop saving!");
         }
-        if ((!Global.ifUploading) && Global.isWifiConn(BleService.this) && (flg))
+        if ((!Global.ifUploading) && Global.isWifiConn(BleService.this))
             startService(new Intent(BleService.this, UpdataService.class));
         System.gc();
     }
 
     // Stop saving to file thoroughly
-    private final void stopSavingFinal(boolean flg) {
+    private final void stopSavingFinal() {
         cancelTimerSavingFile();
-        stopSaving(flg);
+        stopSaving();
 
         sendVoidToAM(STATE_STOP_SAVING, null);
         Global.ifSaving = false;
@@ -371,7 +350,7 @@ public class BleService extends Service {
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 disconnect();
                 if (Global.ifSaving) {
-                    stopSavingFinal(!Global.quick_testing);
+                    stopSavingFinal();
 
                     if (!Global.quick_testing) {
                         Global.ifSaving = true;
@@ -625,7 +604,7 @@ public class BleService extends Service {
     private Handler handlerTimer = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            stopSaving(true);
+            stopSaving();
             startSaving(false);
         }
     };
