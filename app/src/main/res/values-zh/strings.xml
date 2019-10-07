@@ -55,6 +55,7 @@
     <string name="main_noti">通知设置</string>
     <string name="main_general">通用设置</string>
     <string name="main_about">关于</string>
+    <string name="main_return_device">归还设备</string>
     <string name="main_exit">退出</string>
     <string name="main_hi">你好</string>
     <string name="main_welcome">，欢迎使用</string>

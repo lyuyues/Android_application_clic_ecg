@@ -74,6 +74,7 @@
     <string name="main_general">General Settings</string>
     <string name="main_about">About</string>
     <string name="main_mydoctors">MyDoctors</string>
+    <string name="main_return_device">Return Device</string>
     <string name="main_exit">Exit</string>
     <string name="main_notes">Notes</string>
     <string name="main_hi">Hi</string>
