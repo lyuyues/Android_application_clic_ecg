@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 18
+    compileSdkVersion 29
     defaultConfig {
         applicationId "ca.uvic.ece.ecg"
         minSdkVersion 18
-        targetSdkVersion 18
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
                 cppFlags ""
@@ -32,18 +32,21 @@ android {
         targetCompatibility = 1.8
     }
     buildToolsVersion = '29.0.2'
+
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+    }
 }
 
 dependencies {
-    implementation files('libs/CircularFloatingActionMenu-1.0.2-sources.jar')
     implementation files('libs/achartengine-1.1.0.jar')
-    implementation files('libs/android-support-v13.jar')
     implementation files('libs/commons-io-2.4.jar')
-    implementation files('libs/httpmime-4.1.jar')
 
-    api 'com.google.guava:guava:28.0-android'
+    api 'com.google.guava:guava:28.1-jre'
+    api 'androidx.legacy:legacy-support-v13:1.0.0'
+    api 'org.apache.httpcomponents:httpmime:4.5.10'
 
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }

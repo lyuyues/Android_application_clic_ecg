@@ -17,8 +17,8 @@ import ca.uvic.ece.ecg.ECG.HR_FFT;
 import ca.uvic.ece.ecg.ECG.HR_detect;
 import ca.uvic.ece.ecg.ECG.MADetect1;
 
-import android.annotation.SuppressLint;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -34,6 +34,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -118,7 +119,14 @@ public class BleService extends Service {
 
     // Show foreground notification
     private void StartForeground() {
-        Notification noti = new Notification.Builder(BleService.this)
+        Notification.Builder builder;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel();
+            builder = new Notification.Builder(BleService.this, Global.CHANNEL_ID);
+        } else {
+            builder = new Notification.Builder(BleService.this);
+        }
+        Notification noti = builder
                 .setContentIntent(PendingIntent.getActivity(BleService.this, 0, Global.defaultIntent(BleService.this), 0))
                 .setContentTitle(getResources().getString(R.string.app_name))
                 .setContentText(getResources().getString(R.string.app_name) + getResources().getString(R.string.ble_run))
@@ -571,5 +579,24 @@ public class BleService extends Service {
 
     private void toastMakeText(final String string) {
         mHandler.post(() -> Global.toastMakeText(BleService.this, string));
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel(Global.CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            channel.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            assert(null != notificationManager);
+            notificationManager.createNotificationChannel(channel);
+        }
     }
 }

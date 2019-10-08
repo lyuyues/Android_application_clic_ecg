@@ -2,8 +2,6 @@ package ca.uvic.ece.ecg.heartcarer1;
 
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
-import android.app.Activity;
-import android.app.Fragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
@@ -19,8 +17,10 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.widget.DrawerLayout;
+import androidx.legacy.app.ActionBarDrawerToggle;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -37,7 +37,7 @@ import android.widget.TextView;
  * This Activity is the main Activity after logging in (or with no account)
  */
 @SuppressLint("HandlerLeak")
-public class MainActivity extends Activity implements HrmFragment.sendVoidToSMListener {
+public class MainActivity extends FragmentActivity implements HrmFragment.sendVoidToSMListener {
     private final String TAG = "MainActivity";
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -62,7 +62,7 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate()");
 
-        Global.initiate();
+        Global.initiate(MainActivity.this);
 
         setContentView(R.layout.main_activity);
         initTitlesAndIcons();
@@ -158,7 +158,7 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
     private class IncomingHandler extends Handler {
         public void handleMessage(Message msg) {
             getFragmentManager().executePendingTransactions();
-            HrmFragment hrmFrag = (HrmFragment) getFragmentManager()
+            HrmFragment hrmFrag = (HrmFragment) getSupportFragmentManager()
                     .findFragmentByTag(getResources().getString(R.string.main_hrm));
             if (hrmFrag != null)
                 hrmFrag.handleMainActivityMes(msg);
@@ -187,10 +187,10 @@ public class MainActivity extends Activity implements HrmFragment.sendVoidToSMLi
                 Fragment tmp = null;
                 if (position == 0)
                     tmp = new HrmFragment();
-                else if(position == 1)
+                else if (position == 1)
                     tmp = new PatientNotesFragment();
 
-                getFragmentManager().beginTransaction().replace(R.id.content_frame, tmp, mTitles[position]).commit();
+                getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, tmp, mTitles[position]).commit();
             }
         }
 

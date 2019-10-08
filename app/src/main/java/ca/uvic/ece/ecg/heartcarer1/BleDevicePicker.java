@@ -1,13 +1,20 @@
 package ca.uvic.ece.ecg.heartcarer1;
 
 import java.util.ArrayList;
+import java.util.List;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -41,6 +48,38 @@ public class BleDevicePicker extends ListActivity {
 
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         setListAdapter(mLeDeviceListAdapter);
+
+        if (!applyBluetoothPermission(BleDevicePicker.this))
+            return;
+
+        scanLeDevice();
+    }
+
+    private boolean applyBluetoothPermission(Context context) {
+        List<String> permissionsList = new ArrayList<>();
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+            permissionsList.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED)
+            permissionsList.add(Manifest.permission.BLUETOOTH);
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED)
+            permissionsList.add(Manifest.permission.BLUETOOTH_ADMIN);
+
+        if (permissionsList.size() > 0) {
+            ActivityCompat.requestPermissions(
+                    (Activity) context,
+                    permissionsList.toArray(new String[0]),
+                    1);
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        for (int grantResult : grantResults)
+            if (grantResult != PackageManager.PERMISSION_GRANTED)
+                return;
 
         scanLeDevice();
     }

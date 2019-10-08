@@ -1,7 +1,7 @@
 package ca.uvic.ece.ecg.heartcarer1;
 
-import android.app.Fragment;
 import android.os.Bundle;
+import androidx.fragment.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +14,7 @@ public class PatientNotesFragment extends Fragment {
     private static final String TAG = "PatientNotesFragment";
     private View view;
 
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView()");
 
         view = inflater.inflate(R.layout.patientnotes, container, false);

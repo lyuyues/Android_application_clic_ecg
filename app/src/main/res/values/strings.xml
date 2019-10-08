@@ -148,4 +148,6 @@
     <string name="AutoSave">Automatically save data on cloud</string>
     <string name="start_test">Start Test</string>
     <string name="quick_test_report">Quick Test Report</string>
+    <string name="channel_name">Heart Carer</string>
+    <string name="channel_description">Heart Carer Background Service</string>
 </resources>
