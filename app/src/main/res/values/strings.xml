@@ -74,6 +74,7 @@
     <string name="main_general">General Settings</string>
     <string name="main_about">About</string>
     <string name="main_mydoctors">MyDoctors</string>
+    <string name="main_return_device">Return Device</string>
     <string name="main_exit">Exit</string>
     <string name="main_notes">Notes</string>
     <string name="main_hi">Hi</string>
@@ -147,4 +148,6 @@
     <string name="AutoSave">Automatically save data on cloud</string>
     <string name="start_test">Start Test</string>
     <string name="quick_test_report">Quick Test Report</string>
+    <string name="channel_name">Heart Carer</string>
+    <string name="channel_description">Heart Carer Background Service</string>
 </resources>

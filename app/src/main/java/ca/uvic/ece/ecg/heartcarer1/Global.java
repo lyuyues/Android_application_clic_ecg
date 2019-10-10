@@ -27,6 +27,8 @@ public final class Global {
 
     static final String WidgetAction = "com.android.mywidgetaction";
 
+    static final String CHANNEL_ID = "Default";
+
     static final int backInterval = 2000;
     static final int color_Red = 0xFFFF0000;
     static final int color_Black = 0xFF000000;
@@ -47,13 +49,9 @@ public final class Global {
     static int highBpm;
     static String cachePath;
     static String savedPath;
-    static String downloadPath;
-    static String quickcheckpath;
     static String folder;
     static boolean ifHrmFragmentAlive;
-    static int Channel_selection;
     static boolean ifSaving = false;
-    static int max_memory;
 
     static boolean isWifiConnected(Context mContext) {
         Object service = mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -99,27 +97,22 @@ public final class Global {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    static void initiate() {
+    static void initiate(Context context) {
         ifTurnOffBt = true;
         savingLength = frequency * 1000;
         lowBpm = 40;
         highBpm = 100;
-        max_memory = 500;
 
-        final String RootPath = Environment.getExternalStorageDirectory().getPath() + "/Heart Carer Data";
+        final String RootPath = context.getApplicationInfo().dataDir;
         cachePath = RootPath + "/Cache";
         savedPath = RootPath + "/Saved for upload";
-        downloadPath = RootPath + "/Download";
         gqrsTempPath = RootPath + "/Temp";
-        quickcheckpath = RootPath + "/Quick check";
         folder = RootPath;
 
         new File(RootPath).mkdir();
         new File(cachePath).mkdir();
         new File(savedPath).mkdir();
-        new File(downloadPath).mkdir();
         new File(gqrsTempPath).mkdir();
-        new File(quickcheckpath).mkdir();
     }
 
     static void updateFrequency(int frequency) {
