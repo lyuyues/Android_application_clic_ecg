@@ -75,6 +75,7 @@
     <string name="main_about">About</string>
     <string name="main_mydoctors">MyDoctors</string>
     <string name="main_return_device">Return Device</string>
+    <string name="main_returning_device">Returning device...</string>
     <string name="main_exit">Exit</string>
     <string name="main_notes">Notes</string>
     <string name="main_hi">Hi</string>
@@ -102,6 +103,7 @@
     <string name="global_sensor">Heartrate Sensor</string>
     <string name="global_exit">Exit</string>
     <string name="global_wtexit">"Want to exit "</string>
+    <string name="global_return_device">Are you ready to return the device to the designated location?</string>
     <string name="about_check">Check for update</string>
     <string name="about_uptodate">Your version is up to date!</string>
     <string name="about_author">Written by WanboLi / Weizheng Li</string>

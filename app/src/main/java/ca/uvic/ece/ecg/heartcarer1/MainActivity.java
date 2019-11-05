@@ -17,10 +17,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
-import androidx.legacy.app.ActionBarDrawerToggle;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.drawerlayout.widget.DrawerLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,6 +29,11 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.legacy.app.ActionBarDrawerToggle;
+
 /**
  * This Activity is the main Activity after logging in (or with no account)
  */
@@ -41,11 +42,14 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
     private final String TAG = "MainActivity";
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
+    private BaseAdapter mListAdapter;
     private ActionBar mActionBar;
     private ActionBarDrawerToggle mDrawerToggle;
     private String[] mTitles = new String[4];
     private int[] mIconIds = new int[4];
     private Bitmap[] mIcons = new Bitmap[4];
+    private int[] menuIds = new int[4];
+    private int[] menuIdsNotLogin = new int[2];
     private int curDrawerPos = -1;
     public static BluetoothAdapter mBluetoothAdapter;
     private Messenger ServiceMessenger;
@@ -89,8 +93,8 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         };
         mDrawerLayout.setDrawerListener(mDrawerToggle);
 
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        mDrawerList.setAdapter(new MyListAdapter(this));
+        mDrawerList = findViewById(R.id.left_drawer);
+        mDrawerList.setAdapter(mListAdapter = new MyListAdapter(this));
         mDrawerList.setOnItemClickListener((parent, view, position, id) -> selectItem(position));
 
         selectItem(0);
@@ -119,6 +123,14 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         mTitles[3] = getResources().getString(R.string.main_exit);
         mIconIds[3] = R.drawable.exit_64;
         mIcons[3] = BitmapFactory.decodeResource(res, mIconIds[3]);
+
+        menuIds[0] = 0;
+        menuIds[1] = 1;
+        menuIds[2] = 2;
+        menuIds[3] = 3;
+
+        menuIdsNotLogin[0] = 0;
+        menuIdsNotLogin[1] = 3;
     }
 
     // Connection to BleService using Messenger
@@ -162,6 +174,14 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
                     .findFragmentByTag(getResources().getString(R.string.main_hrm));
             if (hrmFrag != null)
                 hrmFrag.handleMainActivityMes(msg);
+
+            int i = msg.what;
+            if (i == BleService.STATE_CONNECTED) {
+                Global.login(() -> {
+                    mListAdapter.notifyDataSetChanged();
+                    startService(new Intent(MainActivity.this, UpdataService.class));
+                });
+            }
         }
     }
 
@@ -179,18 +199,30 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
     private void selectItem(int position) {
         mDrawerLayout.closeDrawer(mDrawerList);
 
-        if (position == 2 || position == 3) {
-            Global.exitDialog(MainActivity.this);
-        } else {
-            if (position != curDrawerPos) {
+        if (!Global.isLogin()) {
+            if (position == 1) {
+                Global.exitDialog(MainActivity.this);
+            } else if (position != curDrawerPos) {
                 curDrawerPos = position;
-                Fragment tmp = null;
-                if (position == 0)
-                    tmp = new HrmFragment();
-                else if (position == 1)
-                    tmp = new PatientNotesFragment();
+                Fragment tmp = new HrmFragment();
+                getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, tmp, mTitles[getPosition(position)]).commit();
+            }
+        } else {
+            if (position == 2) {
+                Global.returnDeviceDialog(MainActivity.this);
+            } else if (position == 3) {
+                Global.exitDialog(MainActivity.this);
+            } else {
+                if (position != curDrawerPos) {
+                    curDrawerPos = position;
+                    Fragment tmp = null;
+                    if (position == 0)
+                        tmp = new HrmFragment();
+                    else if (position == 1)
+                        tmp = new PatientNotesFragment();
 
-                getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, tmp, mTitles[position]).commit();
+                    getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, tmp, mTitles[getPosition(position)]).commit();
+                }
             }
         }
 
@@ -219,6 +251,10 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         return super.onOptionsItemSelected(item);
     }
 
+    private int getPosition(int position) {
+        return !Global.isLogin() ? menuIdsNotLogin[position] : menuIds[position];
+    }
+
     private class MyListAdapter extends BaseAdapter {
         private LayoutInflater inflater;
 
@@ -227,15 +263,15 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         }
 
         public int getCount() {
-            return mTitles.length;
+            return !Global.isLogin() ? 2 : 4;
         }
 
         public Object getItem(int position) {
-            return mTitles[position];
+            return mTitles[getPosition(position)];
         }
 
         public long getItemId(int position) {
-            return position;
+            return getPosition(position);
         }
 
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -243,17 +279,17 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.drawer_list_item, null);
                 holder = new ViewHolder();
-                holder.ll = (LinearLayout) convertView.findViewById(R.id.linearLayout1);
-                holder.icon = (ImageView) convertView.findViewById(R.id.imageView1);
-                holder.title = (TextView) convertView.findViewById(R.id.textView1);
+                holder.ll = convertView.findViewById(R.id.linearLayout1);
+                holder.icon = convertView.findViewById(R.id.imageView1);
+                holder.title = convertView.findViewById(R.id.textView1);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
 
 //            holder.ll.setBackgroundColor(Global.color_Grey);
-            holder.title.setText(mTitles[position]);
-            holder.icon.setImageBitmap(mIcons[position]);
+            holder.title.setText(mTitles[getPosition(position)]);
+            holder.icon.setImageBitmap(mIcons[getPosition(position)]);
             return convertView;
         }
 

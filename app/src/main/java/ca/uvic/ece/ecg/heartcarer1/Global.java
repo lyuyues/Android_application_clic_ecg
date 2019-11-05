@@ -2,15 +2,35 @@ package ca.uvic.ece.ecg.heartcarer1;
 
 import android.app.Activity;
 import android.app.AlertDialog.Builder;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Environment;
+import android.os.Handler;
+import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HTTP;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * This class stores global variables and methods which are used by all the
@@ -53,6 +73,10 @@ public final class Global {
     static boolean ifHrmFragmentAlive;
     static boolean ifSaving = false;
 
+    static boolean isLogin() {
+        return !TextUtils.isEmpty(token);
+    }
+
     static boolean isWifiConnected(Context mContext) {
         Object service = mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (!(service instanceof ConnectivityManager))
@@ -70,11 +94,46 @@ public final class Global {
         return new Intent(mContext, MainActivity.class).setAction(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
     }
 
+    static void returnDeviceDialog(final Activity mActivity) {
+        new Builder(mActivity)
+                .setIcon(R.drawable.exit_64)
+                .setTitle(mActivity.getResources().getString(R.string.main_return_device))
+                .setMessage(mActivity.getResources().getString(R.string.global_return_device))
+                .setPositiveButton(mActivity.getResources().getString(R.string.yes), (dialog, which) -> {
+                    ProgressDialog proDialog = ProgressDialog.show(
+                            mActivity,
+                            mActivity.getResources().getString(R.string.main_returning_device),
+                            "",
+                            true,
+                            false);
+                    returnDevice(new FuncInterface() {
+                        @Override
+                        public void callback() {
+                            token = "";
+                            proDialog.dismiss();
+                            dialog.dismiss();
+                            mActivity.finish();
+                        }
+
+                        @Override
+                        public void handleException(Exception e) {
+                            toastMakeText(mActivity, e.getMessage());
+                            proDialog.dismiss();
+                            dialog.dismiss();
+                        }
+                    });
+                })
+                .setNegativeButton(mActivity.getResources().getString(R.string.no), (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
+    }
+
     static void exitDialog(final Activity mActivity) {
         new Builder(mActivity).setIcon(R.drawable.exit_64)
                 .setTitle(mActivity.getResources().getString(R.string.global_exit))
                 .setMessage(mActivity.getResources().getString(R.string.global_wtexit) + mActivity.getResources().getString(R.string.app_name) + "?")
                 .setPositiveButton(mActivity.getResources().getString(R.string.yes), (dialog, which) -> {
+                    token = "";
                     dialog.dismiss();
                     mActivity.finish();
                 })
@@ -118,5 +177,122 @@ public final class Global {
     static void updateFrequency(int frequency) {
         Global.frequency = frequency;
         Global.savingLength = frequency * 1000;
+    }
+
+    interface FuncInterface
+    {
+        void callback();
+
+        default void handleException(Exception e) {
+            Log.i(TAG, "handleException, " + e.toString());
+        }
+    }
+
+    private static final String TAG = "MainActivity";
+    private static final Handler mHandler = new Handler();
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
+
+    static void login(FuncInterface func) {
+        new Thread() {
+            public void run() {
+                try {
+                    JSONObject paraOut = new JSONObject();
+                    //paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
+                    paraOut.put("deviceMacAddress", "testMacAddress");
+
+                    StringEntity se = new StringEntity(paraOut.toString());
+                    se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+
+                    HttpPost httppost = new HttpPost(Global.WebServiceUrl + "phones");
+                    httppost.setEntity(se);
+
+                    HttpParams hPara = new BasicHttpParams();
+                    HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
+                    HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
+
+                    HttpClient hClient = new DefaultHttpClient(hPara);
+                    HttpResponse response = hClient.execute(httppost);
+
+                    if (200 != response.getStatusLine().getStatusCode()) {
+                        func.handleException(new Exception());
+                        return;
+                    }
+
+                    // get the response string
+                    StringBuilder total = new StringBuilder();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                    String line;
+                    while ((line = rd.readLine()) != null) {
+                        total.append(line);
+                    }
+
+                    // check if the response succeed
+                    JSONObject jso = new JSONObject(total.toString());
+                    String errorMessage = jso.getString("errorMessage");
+                    if (!"OK.".equals(errorMessage)) {
+                        func.handleException(new Exception(errorMessage));
+                        return;
+                    }
+
+                    Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
+
+                    mHandler.post(func::callback);
+                } catch (Exception e) {
+                    func.handleException(e);
+                }
+            }
+        }.start();
+    }
+
+    static void returnDevice(FuncInterface func) {
+        new Thread() {
+            public void run() {
+                try {
+                    JSONObject paraOut = new JSONObject();
+                    //paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
+                    paraOut.put("deviceMacAddress", "testMacAddress");
+                    paraOut.put("returnDate", sdf.format(new Date()));
+
+                    StringEntity se = new StringEntity(paraOut.toString());
+                    se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+
+                    HttpPost httppost = new HttpPost(Global.WebServiceUrl + "phones/return-status");
+                    httppost.addHeader("verificationcode", token);
+                    httppost.setEntity(se);
+
+                    HttpParams hPara = new BasicHttpParams();
+                    HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
+                    HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
+
+                    HttpClient hClient = new DefaultHttpClient(hPara);
+                    HttpResponse response = hClient.execute(httppost);
+
+                    if (200 != response.getStatusLine().getStatusCode()) {
+                        func.handleException(new Exception());
+                        return;
+                    }
+
+                    // get the response string
+                    StringBuilder total = new StringBuilder();
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+                    String line;
+                    while ((line = rd.readLine()) != null) {
+                        total.append(line);
+                    }
+
+                    // check if the response succeed
+                    JSONObject jso = new JSONObject(total.toString());
+                    String errorMessage = jso.getString("errorMessage");
+                    if (!"OK.".equals(errorMessage)) {
+                        func.handleException(new Exception(errorMessage));
+                        return;
+                    }
+
+                    mHandler.post(func::callback);
+                } catch (Exception e) {
+                    func.handleException(e);
+                }
+            }
+        }.start();
     }
 }
