@@ -222,8 +222,6 @@ public class HrmFragment extends Fragment {
         buttonConState.setClickable(false);
 
         mSendToSMListener.sendVoidToSM(1);
-
-        login();
     }
 
     private void disconncetBle() {
@@ -231,53 +229,6 @@ public class HrmFragment extends Fragment {
         buttonConState.setClickable(false);
 
         mSendToSMListener.sendVoidToSM(2);
-    }
-
-    private void login() {
-        new Thread() {
-            public void run() {
-                try {
-                    JSONObject paraOut = new JSONObject();
-                    //paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
-                    paraOut.put("deviceMacAddress", "testMacAddress");
-
-                    StringEntity se = new StringEntity(paraOut.toString());
-                    se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-
-                    HttpPost httppost = new HttpPost(Global.WebServiceUrl + "phones");
-                    httppost.setEntity(se);
-
-                    HttpParams hPara = new BasicHttpParams();
-                    HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
-                    HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
-
-                    HttpClient hClient = new DefaultHttpClient(hPara);
-                    HttpResponse response = hClient.execute(httppost);
-
-                    if (200 != response.getStatusLine().getStatusCode())
-                        return;
-
-                    // get the response string
-                    StringBuilder total = new StringBuilder();
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-                    String line;
-                    while ((line = rd.readLine()) != null) {
-                        total.append(line);
-                    }
-
-                    // check if the response succeed
-                    JSONObject jso = new JSONObject(total.toString());
-                    if (!"OK.".equals(jso.getString("errorMessage")))
-                        return;
-
-                    Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
-
-                    getActivity().startService(new Intent(getActivity(), UpdataService.class));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
     }
 
     // Initiate chart
