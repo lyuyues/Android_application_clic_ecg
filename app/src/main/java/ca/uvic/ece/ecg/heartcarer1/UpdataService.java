@@ -74,8 +74,8 @@ public class UpdataService extends IntentService {
                     Log.i(TAG, "phoneStatus: " + Global.phoneStatus);
 
                     paraOut.put("startTime", null)
-                        .put("endTime", null)
-                        .put("phoneStatus", Global.phoneStatus);
+                            .put("endTime", null)
+                            .put("phoneStatus", Global.phoneStatus);
 
                     MultipartEntityBuilder outEntity = MultipartEntityBuilder.create();
                     outEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
@@ -91,8 +91,8 @@ public class UpdataService extends IntentService {
                         String fileName = file.getName();
                         Log.v(TAG, "File name: " + fileName);
 
-                    if (file.length() < MIN_LENGTH)
-                        continue;
+                        if (file.length() < MIN_LENGTH)
+                            continue;
 
                         long startTimeSec = Long.parseLong(fileName.substring(0, fileName.indexOf(".bin")));
                         String startTime = sdf.format(new Date(startTimeSec));
@@ -116,8 +116,8 @@ public class UpdataService extends IntentService {
                         if (CONNECT_TO_SERVER_SUCCESSFULLY == sendToServer(outEntity)) {
                             Log.i(TAG, " successfully send to server ");
                             boolean res = file.delete();
-                            if (!res){
-                                Log.i(TAG, fileName +  " deleting failed.");
+                            if (!res) {
+                                Log.i(TAG, fileName + " deleting failed.");
                             }
                         }
                     }
@@ -146,7 +146,7 @@ public class UpdataService extends IntentService {
             HttpResponse response = hClient.execute(httppost);
 
             if (200 != response.getStatusLine().getStatusCode()) {
-                Log.i(TAG, " failed connect to server");
+                Log.i(TAG, "Failed connect to server");
                 return CONNECT_TO_SERVER_FAILED;
             }
 
@@ -170,7 +170,7 @@ public class UpdataService extends IntentService {
             Log.i(TAG, "successfully connect to server");
             return CONNECT_TO_SERVER_SUCCESSFULLY;
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return CONNECT_TO_SERVER_DEFAULT;
