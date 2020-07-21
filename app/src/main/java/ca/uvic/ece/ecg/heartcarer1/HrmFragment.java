@@ -1,13 +1,17 @@
 package ca.uvic.ece.ecg.heartcarer1;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Message;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,20 +24,7 @@ import android.widget.Button;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HTTP;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.util.Objects;
 
 /**
  * This Fragment behaves as a Heart Rate Monitor
@@ -65,8 +56,9 @@ public class HrmFragment extends Fragment {
 
     // Called when a fragment is first attached to its activity
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        FragmentActivity activity = getActivity();
         Log.i(TAG, "onAttach()");
 
         mSendToSMListener = (sendVoidToSMListener) activity;
@@ -82,7 +74,7 @@ public class HrmFragment extends Fragment {
         findViewsById();
         setListener();
         initChart();
-        if (Global.ifLandscape(getActivity()))
+        if (Global.ifLandscape(Objects.requireNonNull(getActivity())))
             adaptScreen(0);
 
         return view;
@@ -172,11 +164,11 @@ public class HrmFragment extends Fragment {
     }
 
     private void findViewsById() {
-        buttonConState = (Button) view.findViewById(R.id.button1);
-        textviewHeartRate = (TextView) view.findViewById(R.id.textView_HR);
-        textviewVtvf = (TextView) view.findViewById(R.id.textView_vtvf);
-        tableRow1 = (TableRow) view.findViewById(R.id.tableRow1);
-        buttonStartTest = (Button) view.findViewById(R.id.start_test);
+        buttonConState = view.findViewById(R.id.button1);
+        textviewHeartRate = view.findViewById(R.id.textView_HR);
+        textviewVtvf = view.findViewById(R.id.textView_vtvf);
+        tableRow1 = view.findViewById(R.id.tableRow1);
+        buttonStartTest = view.findViewById(R.id.start_test);
     }
 
     private void setListener() {
@@ -185,6 +177,7 @@ public class HrmFragment extends Fragment {
     }
 
     private OnClickListener start_test_Listener = new OnClickListener() {
+        @SuppressLint("SetTextI18n")
         @Override
         public void onClick(View v) {
             if (Global.ifSaving) {
@@ -207,7 +200,7 @@ public class HrmFragment extends Fragment {
 
     private OnClickListener connectListener = v -> {
         if (BleService.ConState == BleService.ConState_Connected) {
-            disconncetBle();
+            disconnectBle();
             return;
         }
 
@@ -224,7 +217,7 @@ public class HrmFragment extends Fragment {
         mSendToSMListener.sendVoidToSM(1);
     }
 
-    private void disconncetBle() {
+    private void disconnectBle() {
         buttonConState.setText(getResources().getString(R.string.hrm_disconnecting));
         buttonConState.setClickable(false);
 
@@ -233,6 +226,7 @@ public class HrmFragment extends Fragment {
 
     // Initiate chart
     private void initChart() {
+        assert getFragmentManager() != null;
         getFragmentManager()
                 .beginTransaction()
                 .replace(R.id.chart, new DoubleChartFragment(), getResources().getString(R.string.Double_Chart_Fragment))
@@ -277,29 +271,34 @@ public class HrmFragment extends Fragment {
             handleMsgByChart(msg);
         } else if (i == BleService.STATE_START_SAVING) {
             buttonStartTest.setText("Stop Long Term Monitor");
-        } else if (i == BleService.STATE_STOP_SAVING) {
-        } else if (i == BleService.STATE_UPDATE_BPM) {
-            int[] data = msg.getData().getIntArray("data");
-            bpm = data[0];
-            bpmGqrs = data[1];
-        } else if (i == BleService.STATE_UPDATE_VTVF) {
-            vtvf = msg.getData().getInt("data");
+        } else {
+            if (i != BleService.STATE_STOP_SAVING) {
+                if (i == BleService.STATE_UPDATE_BPM) {
+                    int[] data = msg.getData().getIntArray("data");
+                    bpm = data[0];
+                    bpmGqrs = data[1];
+                } else if (i == BleService.STATE_UPDATE_VTVF) {
+                    vtvf = msg.getData().getInt("data");
+                }
+            }
         }
         if (i != BleService.STATE_MULTI_VAL)
             refreshViews();
     }
 
     private void handleMsgByChart(Message msg) {
+        assert getFragmentManager() != null;
         DoubleChartFragment DoubleChartFragment = (DoubleChartFragment) getFragmentManager()
                 .findFragmentByTag(getResources().getString(R.string.Double_Chart_Fragment));
         if (DoubleChartFragment != null)
             DoubleChartFragment.handleHrmFragmentMes(msg);
     }
 
+    @SuppressLint("SetTextI18n")
     private void refreshViews() {
-        if (BleService.ConState == BleService.ConState_NotConnected)
+        if (BleService.ConState == BleService.ConState_NotConnected) {
             buttonConState.setText(getResources().getString(R.string.hrm_notconnected));
-        else if (BleService.ConState == BleService.ConState_Connected)
+        } else if (BleService.ConState == BleService.ConState_Connected)
             buttonConState.setText(getResources().getString(R.string.hrm_connected));
         else
             buttonConState.setText(getResources().getString(R.string.hrm_connecting));

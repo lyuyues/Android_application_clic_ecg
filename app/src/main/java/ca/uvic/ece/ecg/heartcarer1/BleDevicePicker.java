@@ -1,7 +1,9 @@
 package ca.uvic.ece.ecg.heartcarer1;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import android.Manifest;
 import android.app.Activity;
@@ -25,17 +27,20 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
- * This ListActivity allows user to select a Heartrate Sensor
+ * This ListActivity allows user to select a Heart rate Sensor
  */
 public class BleDevicePicker extends ListActivity {
     private final String TAG = "BleDevicePicker";
-    private final int SCAN_PERIOD = 10000;// 10s
-    private final int AUTO_CONNECT = 2000;// 2s
+    private static final int SCAN_PERIOD = 10000;// 10s
+    private static final int AUTO_CONNECT_PERIOD = 2000;// 2s
     private boolean ifScanning = false;
     private Handler mHandler = new Handler();
     private LeDeviceListAdapter mLeDeviceListAdapter;
+
+    private Date requestPermissionTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +49,10 @@ public class BleDevicePicker extends ListActivity {
         setContentView(R.layout.bledevicepicker);
 
         setTitle(getResources().getString(R.string.select) + getResources().getString(R.string.global_sensor));
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getActionBar()).setDisplayHomeAsUpEnabled(true);
 
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         setListAdapter(mLeDeviceListAdapter);
-
-        if (!applyBluetoothPermission(BleDevicePicker.this))
-            return;
 
         scanLeDevice();
     }
@@ -66,6 +68,7 @@ public class BleDevicePicker extends ListActivity {
             permissionsList.add(Manifest.permission.BLUETOOTH_ADMIN);
 
         if (permissionsList.size() > 0) {
+            requestPermissionTime = new Date();
             ActivityCompat.requestPermissions(
                     (Activity) context,
                     permissionsList.toArray(new String[0]),
@@ -77,9 +80,18 @@ public class BleDevicePicker extends ListActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        for (int grantResult : grantResults)
-            if (grantResult != PackageManager.PERMISSION_GRANTED)
+        Date now = new Date();
+        if (now.getTime() - requestPermissionTime.getTime() < 100) {
+            Toast.makeText(BleDevicePicker.this, "Please go to phone Settings to enable location permission.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        for (int grantResult : grantResults) {
+            if (grantResult != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(BleDevicePicker.this, "Please select 'Allow' to enable bluetooth location permission.", Toast.LENGTH_LONG).show();
                 return;
+            }
+        }
 
         scanLeDevice();
     }
@@ -91,7 +103,7 @@ public class BleDevicePicker extends ListActivity {
 
         BleService.mDevice = mLeDeviceListAdapter.getItem(position);
 
-        setResult(Activity.RESULT_OK, null);
+        setResult(Activity.RESULT_OK);
         finish();
     }
 
@@ -145,6 +157,9 @@ public class BleDevicePicker extends ListActivity {
 
     // Scan BLE devices
     private void scanLeDevice() {
+        if (!applyBluetoothPermission(BleDevicePicker.this))
+            return;
+
         synchronized (BleDevicePicker.this) {
             if (ifScanning)
                 return;
@@ -157,22 +172,20 @@ public class BleDevicePicker extends ListActivity {
             mLeDeviceListAdapter.notifyDataSetChanged();
 
             // Auto connect to the device when only one valid device name in the list
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (mLeDeviceListAdapter.getCount() == 1){
-                        onListItemClick(null, null, 0, 0);
-                    }
+            mHandler.postDelayed(() -> {
+                if (mLeDeviceListAdapter.getCount() == 1){
+                    onListItemClick(null, null, 0, 0);
                 }
-            }, AUTO_CONNECT);
+            }, AUTO_CONNECT_PERIOD);
 
-            // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    stopScan();
+            mHandler.postDelayed(() -> {
+                if (mLeDeviceListAdapter.getCount() == 0){
+                    Toast.makeText(BleDevicePicker.this, "Please check if the Sensor is on or with power.", Toast.LENGTH_LONG).show();
                 }
             }, SCAN_PERIOD);
+
+            // Stops scanning after a pre-defined scan period.
+            mHandler.postDelayed(this::stopScan, SCAN_PERIOD);
         }
     }
 
@@ -184,12 +197,9 @@ public class BleDevicePicker extends ListActivity {
             if (!getResources().getString(R.string.app_name_title).equals(deviceName))
                 return;
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mLeDeviceListAdapter.addDevice(device);
-                    mLeDeviceListAdapter.notifyDataSetChanged();
-                }
+            runOnUiThread(() -> {
+                mLeDeviceListAdapter.addDevice(device);
+                mLeDeviceListAdapter.notifyDataSetChanged();
             });
         }
     };
@@ -201,7 +211,7 @@ public class BleDevicePicker extends ListActivity {
 
         public LeDeviceListAdapter() {
             super();
-            mLeDevices = new ArrayList<BluetoothDevice>();
+            mLeDevices = new ArrayList<>();
             mInflator = getLayoutInflater();
         }
 
@@ -235,9 +245,9 @@ public class BleDevicePicker extends ListActivity {
             if (convertView == null) {
                 convertView = mInflator.inflate(R.layout.datamanagelist_item, parent, false);
                 viewHolder = new ViewHolder();
-                viewHolder.image = (ImageView) convertView.findViewById(R.id.imageView1);
-                viewHolder.deviceName = (TextView) convertView.findViewById(R.id.textView1);
-                viewHolder.deviceAddress = (TextView) convertView.findViewById(R.id.textView2);
+                viewHolder.image = convertView.findViewById(R.id.imageView1);
+                viewHolder.deviceName = convertView.findViewById(R.id.textView1);
+                viewHolder.deviceAddress = convertView.findViewById(R.id.textView2);
                 convertView.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();

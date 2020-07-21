@@ -7,7 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.LinearLayout;
+
+import java.util.Objects;
 
 import ca.uvic.ece.ecg.ECG.DataFilter;
 
@@ -28,11 +29,11 @@ public class DoubleChartFragment extends Fragment {
         View view = inflater.inflate(R.layout.two_chart_fragment, container, false);
 
         ecgChart1 = new ECGChart(getActivity(), Global.yAxis_Min_Channel1, Global.yAxis_Max_Channel1, getResources().getString(R.string.ecgsignal1));
-        ecgChart1.addToLayout((LinearLayout) view.findViewById(R.id.chart1),
+        ecgChart1.addToLayout(view.findViewById(R.id.chart1),
                 new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         ecgChart2 = new ECGChart(getActivity(), Global.yAxis_Min_Channel2, Global.yAxis_Max_Channel2, getResources().getString(R.string.ecgsignal2));
-        ecgChart2.addToLayout((LinearLayout) view.findViewById(R.id.chart2),
+        ecgChart2.addToLayout(view.findViewById(R.id.chart2),
                 new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         return view;
@@ -41,7 +42,7 @@ public class DoubleChartFragment extends Fragment {
     public void handleHrmFragmentMes(Message msg) {
         switch (msg.what) {
         case BleService.STATE_MULTI_VAL:
-            int[] multiValue = msg.getData().getIntArray("data");
+            int[] multiValue = Objects.requireNonNull(msg.getData().getIntArray("data"));
             int length = multiValue.length / 2;
 
             for (int i = 0; i < length; i++) {

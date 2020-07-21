@@ -10,12 +10,11 @@ import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
 import android.app.Activity;
-import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 
 /**
- * Chart used to plot the curves using achart engine
+ * Chart used to plot the curves using AChartEngine library
  * @author yizhou
  *
  */
@@ -35,12 +34,9 @@ public class ECGChart {
         dataset.addSeries(series);
 
         view = ChartFactory.getLineChartView(activity, dataset, renderer);
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View arg0) {
-                @SuppressWarnings("unused")
-                SeriesSelection seriesSelection = view.getCurrentSeriesAndPoint();
-            }
+        view.setOnClickListener(arg0 -> {
+            @SuppressWarnings("unused")
+            SeriesSelection seriesSelection = view.getCurrentSeriesAndPoint();
         });
     }
 
@@ -85,17 +81,6 @@ public class ECGChart {
         seriesRenderer.setFillPoints(true);
         seriesRenderer.setColor(Global.color_Black);
         renderer.addSeriesRenderer(seriesRenderer);
-    }
-
-    public void appendPoint(double y) {
-        if (xAxis == Global.xAxis_Total_Max)
-            clearPlot();
-
-        series.add(xAxis++, y);
-        view.repaint();
-
-        if (xAxis > Global.xAxis_Max)
-            restRangePlot();
     }
 
     public void appendPointWithoutPaint(double y) {
