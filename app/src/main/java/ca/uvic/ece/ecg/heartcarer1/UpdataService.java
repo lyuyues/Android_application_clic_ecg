@@ -41,7 +41,7 @@ public class UpdataService extends IntentService {
     private static final int CONNECT_TO_SERVER_ERROR = 2;
     private static final int CONNECT_TO_SERVER_SUCCESSFULLY = 3;
 
-    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.ENGLISH);
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
     public UpdataService() {
         super("UpdataService");
@@ -123,7 +123,6 @@ public class UpdataService extends IntentService {
                     }
 
                 }
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
