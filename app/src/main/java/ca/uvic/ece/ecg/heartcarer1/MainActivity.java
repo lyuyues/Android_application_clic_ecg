@@ -7,11 +7,13 @@ import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -42,7 +44,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
     private final String TAG = "MainActivity";
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
-    private BaseAdapter mListAdapter;
+    private static BaseAdapter mListAdapter;
     private ActionBar mActionBar;
     private ActionBarDrawerToggle mDrawerToggle;
     private String[] mTitles = new String[4];
@@ -61,6 +63,9 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
     // Local Messenger used to talk to ServiceMessenger, Message received by
     // IncomingHandler
     final Messenger mMessenger = new Messenger(new IncomingHandler());
+
+    private NetworkStateReceiver networkStateReceiver;
+    private BleReceiver bleReceiver;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,6 +108,17 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         bindService(new Intent(MainActivity.this, BleService.class), mConn, Context.BIND_AUTO_CREATE);
         startService(new Intent(MainActivity.this, BleService.class));
         mBluetoothAdapter = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+
+        networkStateReceiver = new NetworkStateReceiver();
+        bleReceiver = new BleReceiver();
+
+        IntentFilter networkFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        networkFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        this.registerReceiver(networkStateReceiver, networkFilter);
+
+        IntentFilter bleFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+        bleFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        this.registerReceiver(bleReceiver, bleFilter);
     }
 
     private void initTitlesAndIcons() {
@@ -178,13 +194,16 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
             int i = msg.what;
             if (i == BleService.STATE_CONNECTED) {
                 Global.login(() -> {
-                    mListAdapter.notifyDataSetChanged();
+                    updateAdapter();
                     startService(new Intent(MainActivity.this, UpdataService.class));
                 });
             }
         }
     }
 
+    public static void updateAdapter() {
+        mListAdapter.notifyDataSetChanged();
+    }
     // Set the title and icon of ActionBar
     private void setTitleAndIcon(int index) {
         if (-1 == index) {
@@ -320,6 +339,9 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy()");
+
+        this.unregisterReceiver(bleReceiver);
+        this.unregisterReceiver(networkStateReceiver);
 
         Global.toastMakeText(MainActivity.this, getResources().getString(R.string.main_thank)
                 + getResources().getString(R.string.app_name) + getResources().getString(R.string.excla));

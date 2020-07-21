@@ -8,7 +8,9 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -49,6 +51,11 @@ public final class Global {
 
     static final String CHANNEL_ID = "Default";
 
+    public static final int PHONE_STATUS_INIT = 0;
+    public static final int PHONE_STATUS_BLE_CONNECTED_DATA_RECEIVED = 1;
+    public static final int PHONE_STATUS_BLE_DISCONNECTED = 2;
+    public static final int PHONE_STATUS_BLE_CONNECTED_DATA_LOST = 3;
+
     static final int backInterval = 2000;
     static final int color_Red = 0xFFFF0000;
     static final int color_Black = 0xFF000000;
@@ -72,18 +79,10 @@ public final class Global {
     static String folder;
     static boolean ifHrmFragmentAlive;
     static boolean ifSaving = false;
+    static int phoneStatus = PHONE_STATUS_INIT;
 
     static boolean isLogin() {
         return !TextUtils.isEmpty(token);
-    }
-
-    static boolean isWifiConnected(Context mContext) {
-        Object service = mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (!(service instanceof ConnectivityManager))
-            return false;
-
-        NetworkInfo networkInfo = ((ConnectivityManager) service).getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        return null != networkInfo && networkInfo.isConnected();
     }
 
     static void toastMakeText(Context mContext, String string) {
@@ -189,10 +188,51 @@ public final class Global {
     }
 
     private static final String TAG = "MainActivity";
-    private static final Handler mHandler = new Handler();
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
-    static void login(FuncInterface func) {
+    private static final String MessageKey = "message";
+    private static final Handler mHandler = new GlobalHandler();
+    private static class GlobalHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            String message = msg.getData().getString(MessageKey);
+            Toast.makeText((Context) msg.obj, message, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    static boolean isNetworkConnected(Context mContext, int networkType) {
+        Object service = mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (!(service instanceof ConnectivityManager))
+            return false;
+
+        NetworkInfo networkInfo = ((ConnectivityManager) service).getNetworkInfo(networkType);
+        return null != networkInfo && networkInfo.isConnected();
+    }
+
+    static boolean isWifiConnected(Context mContext) {
+        return isNetworkConnected(mContext, ConnectivityManager.TYPE_WIFI);
+    }
+
+    static boolean isCellularConnected(Context mContext) {
+        return isNetworkConnected(mContext, ConnectivityManager.TYPE_MOBILE);
+    }
+
+    public static boolean isWifiOrCellularConnected(Context context) {
+        return Global.isWifiConnected(context) || Global.isCellularConnected(context);
+    }
+
+    public static void login(FuncInterface func, Context context) {
+        // if no network connection notify user and return
+        if (!isWifiOrCellularConnected(context)) {
+            Bundle bundle = new Bundle();
+            bundle.putString(MessageKey, "Please connect to WIFI or Cellular.");
+            Message message = new Message();
+            message.obj = context;
+            message.setData(bundle);
+            mHandler.sendMessage(message);
+            return;
+        }
+
         new Thread() {
             public void run() {
                 try {
@@ -237,11 +277,17 @@ public final class Global {
                     Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
 
                     mHandler.post(func::callback);
+                    mHandler.post(() -> Toast.makeText(context, "User has Login.", Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
                     func.handleException(e);
                 }
             }
         }.start();
+    }
+
+    public static void logout() {
+        token = "";
+        MainActivity.updateAdapter();
     }
 
     static void returnDevice(FuncInterface func) {
@@ -268,7 +314,7 @@ public final class Global {
                     HttpResponse response = hClient.execute(httppost);
 
                     if (200 != response.getStatusLine().getStatusCode()) {
-                        func.handleException(new Exception());
+                        mHandler.post(() -> func.handleException(new Exception()));
                         return;
                     }
 
@@ -284,13 +330,12 @@ public final class Global {
                     JSONObject jso = new JSONObject(total.toString());
                     String errorMessage = jso.getString("errorMessage");
                     if (!"OK.".equals(errorMessage)) {
-                        func.handleException(new Exception(errorMessage));
+                        mHandler.post(() -> func.handleException(new Exception(errorMessage)));
                         return;
                     }
-
                     mHandler.post(func::callback);
                 } catch (Exception e) {
-                    func.handleException(e);
+                    mHandler.post(() -> func.handleException(e));
                 }
             }
         }.start();
