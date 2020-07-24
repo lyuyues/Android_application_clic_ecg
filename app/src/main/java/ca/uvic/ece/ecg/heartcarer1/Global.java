@@ -191,14 +191,7 @@ public final class Global {
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
     private static final String MessageKey = "message";
-    private static final Handler mHandler = new GlobalHandler();
-    private static class GlobalHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            String message = msg.getData().getString(MessageKey);
-            Toast.makeText((Context) msg.obj, message, Toast.LENGTH_LONG).show();
-        }
-    }
+    private static final Handler mHandler = new Handler();
 
     static boolean isNetworkConnected(Context mContext, int networkType) {
         Object service = mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -224,12 +217,6 @@ public final class Global {
     public static void login(FuncInterface func, Context context) {
         // if no network connection notify user and return
         if (!isWifiOrCellularConnected(context)) {
-            Bundle bundle = new Bundle();
-            bundle.putString(MessageKey, "Please connect to WIFI or Cellular.");
-            Message message = new Message();
-            message.obj = context;
-            message.setData(bundle);
-            mHandler.sendMessage(message);
             return;
         }
 

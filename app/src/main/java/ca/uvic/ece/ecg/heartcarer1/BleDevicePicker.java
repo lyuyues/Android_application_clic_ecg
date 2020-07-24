@@ -180,7 +180,7 @@ public class BleDevicePicker extends ListActivity {
 
             mHandler.postDelayed(() -> {
                 if (mLeDeviceListAdapter.getCount() == 0){
-                    Toast.makeText(BleDevicePicker.this, "Please check if the Sensor is on or with power.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(BleDevicePicker.this, "No sensors found!\nPlease check if the Sensor is on or with power.", Toast.LENGTH_LONG).show();
                 }
             }, SCAN_PERIOD);
 
