@@ -19,7 +19,6 @@ public class BleReceiver extends BroadcastReceiver {
             int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
             switch (blueState) {
                 case BluetoothAdapter.STATE_TURNING_ON:
-                    Toast.makeText(context, "Turing on the Bluetooth", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "BLE_STATE_TURNING_ON");
                     break;
                 case BluetoothAdapter.STATE_ON:
@@ -27,7 +26,6 @@ public class BleReceiver extends BroadcastReceiver {
                     Log.d(TAG, "BLE_STATE_ON");
                     break;
                 case BluetoothAdapter.STATE_TURNING_OFF:
-                    Toast.makeText(context, "Turing off the Bluetooth", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "BLE_STATE_TURNING_OFF");
                     break;
                 case BluetoothAdapter.STATE_OFF:

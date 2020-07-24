@@ -133,7 +133,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         mIcons[1] = BitmapFactory.decodeResource(res, mIconIds[1]);
 
         mTitles[2] = getResources().getString(R.string.main_return_device);
-        mIconIds[2] = R.drawable.exit_64;
+        mIconIds[2] = R.drawable.return_back;
         mIcons[2] = BitmapFactory.decodeResource(res, mIconIds[2]);
 
         mTitles[3] = getResources().getString(R.string.main_exit);
@@ -196,7 +196,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
                 Global.login(() -> {
                     updateAdapter();
                     startService(new Intent(MainActivity.this, UpdataService.class));
-                });
+                }, MainActivity.this);
             }
         }
     }
