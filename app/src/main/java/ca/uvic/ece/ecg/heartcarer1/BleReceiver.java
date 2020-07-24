@@ -29,6 +29,7 @@ public class BleReceiver extends BroadcastReceiver {
                     Log.d(TAG, "BLE_STATE_TURNING_OFF");
                     break;
                 case BluetoothAdapter.STATE_OFF:
+                    BleService.ConState = BleService.ConState_NotConnected;
                     Toast.makeText(context, "Bluetooth is off, please turn it on", Toast.LENGTH_LONG).show();
                     Log.d(TAG, "BLE_STATE_OFF");
                     break;
