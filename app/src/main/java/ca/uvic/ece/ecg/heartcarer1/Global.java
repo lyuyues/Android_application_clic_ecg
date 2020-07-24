@@ -187,7 +187,7 @@ public final class Global {
         }
     }
 
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "Global";
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
     private static final String MessageKey = "message";
@@ -241,6 +241,7 @@ public final class Global {
                     HttpResponse response = hClient.execute(httppost);
 
                     if (200 != response.getStatusLine().getStatusCode()) {
+                        Log.i(TAG, "Server respond non 200");
                         func.handleException(new Exception());
                         return;
                     }
@@ -257,6 +258,8 @@ public final class Global {
                     JSONObject jso = new JSONObject(total.toString());
                     String errorMessage = jso.getString("errorMessage");
                     if (!"OK.".equals(errorMessage)) {
+                        Log.i(TAG, errorMessage);
+                        mHandler.post(() -> Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show());
                         func.handleException(new Exception(errorMessage));
                         return;
                     }
@@ -264,7 +267,7 @@ public final class Global {
                     Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
 
                     mHandler.post(func::callback);
-                    mHandler.post(() -> Toast.makeText(context, "User has Login.", Toast.LENGTH_SHORT).show());
+                    mHandler.post(() -> Toast.makeText(context, "User has login.", Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
                     func.handleException(e);
                 }
