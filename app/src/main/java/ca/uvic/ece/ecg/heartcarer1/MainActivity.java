@@ -54,7 +54,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
     private int[] menuIdsNotLogin = new int[2];
     private int curDrawerPos = -1;
     public static BluetoothAdapter mBluetoothAdapter;
-    private Messenger ServiceMessenger;
+    private Messenger mBleServiceMessenger;
     private boolean ifBackPressed = false;
     private Menu myMenu;
 
@@ -110,7 +110,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         mBluetoothAdapter = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
 
         networkStateReceiver = new NetworkStateReceiver();
-        bleReceiver = new BleReceiver();
+        bleReceiver = new BleReceiver(MainActivity.this);
 
         IntentFilter networkFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         networkFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
@@ -151,14 +151,15 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
 
     // Connection to BleService using Messenger
     private ServiceConnection mConn = new ServiceConnection() {
+        @Override
         public void onServiceConnected(ComponentName arg0, IBinder binder) {
             Log.i(TAG, "onServiceConnected()");
-            ServiceMessenger = new Messenger(binder);
+            mBleServiceMessenger = new Messenger(binder);
             try {
                 // Register
                 Message msg = Message.obtain(null, 0);
                 msg.replyTo = mMessenger;
-                ServiceMessenger.send(msg);
+                mBleServiceMessenger.send(msg);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -167,6 +168,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         // Called when a connection to the Service has been lost.
         // This typically happens when the process hosting the service has
         // crashed or been killed.
+        @Override
         public void onServiceDisconnected(ComponentName arg0) {
             Log.v(TAG, "onServiceDisconnected()");
         }
@@ -176,7 +178,20 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
     public void sendVoidToSM(int i) {
         try {
             Message msg = Message.obtain(null, i);
-            ServiceMessenger.send(msg);
+            mBleServiceMessenger.send(msg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Send void message to HrmFragment
+    public void sendMessageToHrmFragment(int i) {
+        try {
+            getFragmentManager().executePendingTransactions();
+            HrmFragment hrmFrag = (HrmFragment) getSupportFragmentManager()
+                    .findFragmentByTag(getResources().getString(R.string.main_hrm));
+            if (hrmFrag != null)
+                hrmFrag.handleMainActivityMes(Message.obtain(null, i));
         } catch (Exception e) {
             e.printStackTrace();
         }
