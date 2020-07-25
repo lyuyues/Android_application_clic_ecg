@@ -262,15 +262,24 @@ public class HrmFragment extends Fragment {
         int i = msg.what;
         if (i == BleService.STATE_MULTI_VAL) {
             handleMsgByChart(msg);
+        } else if (i == BleService.STATE_CONNECTING) {
+            setMenuSensorInfoEnabled(false);
+            connectBle();
         } else if (i == BleService.STATE_CONNECTED) {
             setMenuSensorInfoEnabled(true);
+            refreshViews();
             Global.toastMakeText(getActivity(), getResources().getString(R.string.global_sensor) + " connected!");
+        } else if (i == BleService.STATE_DISCONNECTING) {
+            setMenuSensorInfoEnabled(false);
+            disconnectBle();
         } else if (i == BleService.STATE_DISCONNECTED) {
             setMenuSensorInfoEnabled(false);
+            refreshViews();
             Global.toastMakeText(getActivity(), "Disconnected!");
             handleMsgByChart(msg);
         } else if (i == BleService.STATE_START_SAVING) {
             buttonStartTest.setText("Stop Long Term Monitor");
+            refreshViews();
         } else {
             if (i != BleService.STATE_STOP_SAVING) {
                 if (i == BleService.STATE_UPDATE_BPM) {
@@ -281,9 +290,8 @@ public class HrmFragment extends Fragment {
                     vtvf = msg.getData().getInt("data");
                 }
             }
-        }
-        if (i != BleService.STATE_MULTI_VAL)
             refreshViews();
+        }
     }
 
     private void handleMsgByChart(Message msg) {
@@ -296,9 +304,9 @@ public class HrmFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void refreshViews() {
-        if (BleService.ConState == BleService.ConState_NotConnected) {
+        if (BleService.ConState == BleService.ConState_NotConnected)
             buttonConState.setText(getResources().getString(R.string.hrm_notconnected));
-        } else if (BleService.ConState == BleService.ConState_Connected)
+        else if (BleService.ConState == BleService.ConState_Connected)
             buttonConState.setText(getResources().getString(R.string.hrm_connected));
         else
             buttonConState.setText(getResources().getString(R.string.hrm_connecting));

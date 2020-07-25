@@ -53,20 +53,22 @@ public class BleService extends Service {
     public static final int ConState_Connecting = 2;
 
     public static final int STATE_REGISTERED = 1;
-    public static final int STATE_CONNECTED = 2;
-    public static final int STATE_DISCONNECTED = 3;
-    public static final int STATE_START_SAVING = 4;
-    public static final int STATE_STOP_SAVING = 5;
-    public static final int STATE_UPDATE_BPM = 6;
-    public static final int STATE_UPDATE_VTVF = 7;
-    public static final int STATE_MULTI_VAL = 8;
+    public static final int STATE_CONNECTING = 2;
+    public static final int STATE_CONNECTED = 3;
+    public static final int STATE_DISCONNECTING = 4;
+    public static final int STATE_DISCONNECTED = 5;
+    public static final int STATE_START_SAVING = 6;
+    public static final int STATE_STOP_SAVING = 7;
+    public static final int STATE_UPDATE_BPM = 8;
+    public static final int STATE_UPDATE_VTVF = 9;
+    public static final int STATE_MULTI_VAL = 10;
 
     public static boolean enableNoti;
     public static BluetoothDevice mDevice;
     private HR_FFT hr = new HR_FFT();
     private HR_detect hrd = new HR_detect();
     private final String TAG = "BleService";
-    private Messenger ActivityMessenger;
+    private Messenger mMainActivityMessenger;
     private BluetoothGatt mBluetoothGatt;
     private final int buf_length = 1024 * 1024;
     private byte[] buffer = new byte[buf_length];
@@ -171,8 +173,10 @@ public class BleService extends Service {
         if (ConState == ConState_Connected)
             return;
 
-        ConState = ConState_Connecting;
-        mBluetoothGatt = mDevice.connectGatt(BleService.this, false, mGattCallback);
+        if (mDevice != null) {
+            ConState = ConState_Connecting;
+            mBluetoothGatt = mDevice.connectGatt(BleService.this, false, mGattCallback);
+        }
     }
 
     private synchronized void reconnect() {
@@ -209,7 +213,7 @@ public class BleService extends Service {
             int i = msg.what;
             if (i == 0) {
                 // Register
-                ActivityMessenger = msg.replyTo;
+                mMainActivityMessenger = msg.replyTo;
                 sendVoidToAM(STATE_REGISTERED, null);
             } else if (i == 1) {
                 // Connect
@@ -267,7 +271,7 @@ public class BleService extends Service {
                 bundle.putSerializable("data", obj);
                 message.setData(bundle);
             }
-            ActivityMessenger.send(message);
+            mMainActivityMessenger.send(message);
         } catch (Exception ignore) {
         }
     }

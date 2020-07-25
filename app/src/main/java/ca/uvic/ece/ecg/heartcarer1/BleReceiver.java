@@ -10,6 +10,14 @@ import android.widget.Toast;
 public class BleReceiver extends BroadcastReceiver {
     private static final String TAG = "BleReceiver";
 
+    private final MainActivity mMainActivity;
+
+    public BleReceiver(MainActivity mainActivity) {
+        super();
+
+        this.mMainActivity = mainActivity;
+    }
+
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent == null || intent.getAction() == null)
@@ -22,15 +30,15 @@ public class BleReceiver extends BroadcastReceiver {
                     Log.d(TAG, "BLE_STATE_TURNING_ON");
                     break;
                 case BluetoothAdapter.STATE_ON:
-                    Toast.makeText(context, "Bluetooth is on", Toast.LENGTH_SHORT).show();
+                    mMainActivity.sendMessageToHrmFragment(BleService.STATE_CONNECTING);
                     Log.d(TAG, "BLE_STATE_ON");
                     break;
                 case BluetoothAdapter.STATE_TURNING_OFF:
                     Log.d(TAG, "BLE_STATE_TURNING_OFF");
                     break;
                 case BluetoothAdapter.STATE_OFF:
-                    BleService.ConState = BleService.ConState_NotConnected;
-                    Toast.makeText(context, "Bluetooth is off, please turn it on", Toast.LENGTH_LONG).show();
+                    mMainActivity.sendMessageToHrmFragment(BleService.STATE_DISCONNECTING);
+                    Toast.makeText(context, "Bluetooth is off, please turn it on", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "BLE_STATE_OFF");
                     break;
             }
