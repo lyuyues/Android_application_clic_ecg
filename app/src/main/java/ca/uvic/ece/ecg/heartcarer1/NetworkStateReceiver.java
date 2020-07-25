@@ -21,7 +21,6 @@ public class NetworkStateReceiver extends BroadcastReceiver {
             if (!Global.isLogin()) {
                 Global.login(() -> {
                     MainActivity.updateAdapter();
-                    context.startService(new Intent(context, UpdataService.class));
                 }, context);
             }
         } else {

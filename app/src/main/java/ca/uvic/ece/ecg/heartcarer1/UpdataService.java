@@ -23,9 +23,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.IntentService;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
-import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
@@ -60,13 +57,23 @@ public class UpdataService extends IntentService {
         synchronized (LOCK) {
             FilenameFilter filter = (dir, filename) -> filename.endsWith(".bin");
             File[] files = new File(Global.savedPath).listFiles(filter);
-            BluetoothAdapter bluetoothAdapter = ((BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE)).getAdapter();
+
+            if (files != null) {
+                for (File file : files) {
+                    if (file.length() < MIN_LENGTH) {
+                        //noinspection ResultOfMethodCallIgnored
+                        file.delete();
+                    }
+                }
+
+                files = new File(Global.savedPath).listFiles(filter);
+            }
 
             JSONObject paraOut = new JSONObject();
 
             try {
                 if (null == files) {
-                    if (bluetoothAdapter.enable()) {
+                    if (BleService.ConState == BleService.ConState_Connected) {
                         Global.phoneStatus = Global.PHONE_STATUS_BLE_CONNECTED_DATA_LOST;
                     } else {
                         Global.phoneStatus = Global.PHONE_STATUS_BLE_DISCONNECTED;
@@ -84,6 +91,12 @@ public class UpdataService extends IntentService {
 
                     sendToServer(outEntity);
                 } else {
+                    if (BleService.ConState == BleService.ConState_Connected) {
+                        Global.phoneStatus = Global.PHONE_STATUS_BLE_CONNECTED_DATA_RECEIVED;
+                    } else {
+                        Global.phoneStatus = Global.PHONE_STATUS_BLE_DISCONNECTED;
+                    }
+                    Log.i(TAG, "phoneStatus: " + Global.phoneStatus);
 
                     for (File file : files) {
                         if (file == null)
@@ -91,18 +104,11 @@ public class UpdataService extends IntentService {
                         String fileName = file.getName();
                         Log.v(TAG, "File name: " + fileName);
 
-                        if (file.length() < MIN_LENGTH)
-                            continue;
-
                         long startTimeSec = Long.parseLong(fileName.substring(0, fileName.indexOf(".bin")));
                         String startTime = sdf.format(new Date(startTimeSec));
                         String endTime = sdf.format(new Date(file.lastModified()));
                         Log.i(TAG, "startTime: " + startTime);
                         Log.i(TAG, "endTime: " + endTime);
-
-                        // update phone status
-                        Global.phoneStatus = Global.PHONE_STATUS_BLE_CONNECTED_DATA_RECEIVED;
-                        Log.i(TAG, "phoneStatus: " + Global.phoneStatus);
 
                         paraOut.put("startTime", startTime)
                                 .put("endTime", endTime)

@@ -12,7 +12,6 @@ import java.util.TimerTask;
 import java.util.UUID;
 
 import ca.uvic.ece.ecg.ECG.AveCC;
-import ca.uvic.ece.ecg.ECG.GqrsProcess;
 import ca.uvic.ece.ecg.ECG.HR_FFT;
 import ca.uvic.ece.ecg.ECG.HR_detect;
 import ca.uvic.ece.ecg.ECG.MADetect1;
@@ -95,7 +94,6 @@ public class BleService extends Service {
         Log.i(TAG, "onCreate()");
 
         initStatic();
-        registerReceiver(wifiReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         mNotiManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     }
@@ -149,7 +147,6 @@ public class BleService extends Service {
 
         // Update widget
         sendBroadcast(new Intent(Global.WidgetAction).putExtra("bpm", 0));
-        unregisterReceiver(wifiReceiver);
         mNotiManager.cancelAll();
 
         disconnect();
@@ -160,13 +157,6 @@ public class BleService extends Service {
 
         super.onDestroy();
     }
-
-    private BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context arg0, Intent intent) {
-            startService(new Intent(BleService.this, UpdataService.class));
-        }
-    };
 
     private synchronized void connect() {
         Log.i(TAG, "connect, ConState = " + ConState);
