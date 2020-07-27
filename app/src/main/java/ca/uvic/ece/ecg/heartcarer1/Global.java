@@ -215,6 +215,11 @@ public final class Global {
     }
 
     public static void login(FuncInterface func, Context context) {
+        Log.i(TAG, "login");
+        if (BleService.mDevice == null) {
+            return;
+        }
+
         // if no network connection notify user and return
         if (!isWifiOrCellularConnected(context)) {
             return;
@@ -224,8 +229,8 @@ public final class Global {
             public void run() {
                 try {
                     JSONObject paraOut = new JSONObject();
-                    //paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
-                    paraOut.put("deviceMacAddress", "testMacAddress");
+                    paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
+//                    paraOut.put("deviceMacAddress", "testMacAddress");
 
                     StringEntity se = new StringEntity(paraOut.toString());
                     se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
@@ -267,7 +272,7 @@ public final class Global {
                     Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
 
                     mHandler.post(func::callback);
-                    mHandler.post(() -> Toast.makeText(context, "User has login.", Toast.LENGTH_SHORT).show());
+                    //mHandler.post(() -> Toast.makeText(context, "User has login.", Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
                     func.handleException(e);
                 }
