@@ -45,8 +45,8 @@ public final class Global {
     public static String gqrsTempPath;
 
     static final String WebServiceUrl = "http://ecg.uvic.ca:8080/v1/test/";
-    static final int connectionTimeout = 3000;
-    static final int socketTimeout = 3000;
+    static final int connectionTimeout = 10000;
+    static final int socketTimeout = 10000;
 
     static final String WidgetAction = "com.android.mywidgetaction";
 
@@ -231,7 +231,6 @@ public final class Global {
                 try {
                     JSONObject paraOut = new JSONObject();
                     paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
-//                    paraOut.put("deviceMacAddress", "testMacAddress");
 
                     StringEntity se = new StringEntity(paraOut.toString());
                     se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
@@ -273,7 +272,6 @@ public final class Global {
                     Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
 
                     mHandler.post(func::callback);
-                    //mHandler.post(() -> Toast.makeText(context, "User has login.", Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
                     func.handleException(e);
                 }
