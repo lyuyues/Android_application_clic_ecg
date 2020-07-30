@@ -29,6 +29,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -323,11 +324,24 @@ public final class Global {
                         mHandler.post(() -> func.handleException(new Exception(errorMessage)));
                         return;
                     }
+
+                    // Empty all stored files when user successfully return the device
+                    FilenameFilter filter = (dir, filename) -> filename.endsWith(".bin");
+                    File[] files = new File(Global.savedPath).listFiles(filter);
+                    for (File file : files) {
+                        file.delete();
+                    }
+                    files = new File(Global.savedPath).listFiles(filter);
+                    if (0 == files.length) {
+                        Log.i(TAG, "Empty files successfully");
+                    }
+
                     mHandler.post(func::callback);
                 } catch (Exception e) {
                     mHandler.post(() -> func.handleException(e));
                 }
             }
         }.start();
+
     }
 }
