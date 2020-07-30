@@ -122,8 +122,11 @@ public class UpdataService extends IntentService {
                         if (CONNECT_TO_SERVER_SUCCESSFULLY == sendToServer(outEntity)) {
                             Log.i(TAG, " successfully send to server ");
                             boolean res = file.delete();
+                            Log.i(TAG, "try to deleting file.");
                             if (!res) {
                                 Log.i(TAG, fileName + " deleting failed.");
+                            } else {
+                                Log.i(TAG, fileName + " deleting successfully.");
                             }
                         }
                     }
@@ -152,7 +155,7 @@ public class UpdataService extends IntentService {
             HttpResponse response = hClient.execute(httppost);
 
             if (200 != response.getStatusLine().getStatusCode()) {
-                Log.i(TAG, "Failed connect to server");
+                Log.i(TAG, "Failed connect to server, error Code" + response.getStatusLine().getStatusCode());
                 return CONNECT_TO_SERVER_FAILED;
             }
 
