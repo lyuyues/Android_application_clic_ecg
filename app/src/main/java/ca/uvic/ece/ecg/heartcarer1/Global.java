@@ -8,9 +8,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -289,8 +287,7 @@ public final class Global {
             public void run() {
                 try {
                     JSONObject paraOut = new JSONObject();
-                    //paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
-                    paraOut.put("deviceMacAddress", "testMacAddress");
+                    paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
                     paraOut.put("returnDate", sdf.format(new Date()));
 
                     StringEntity se = new StringEntity(paraOut.toString());
