@@ -37,6 +37,7 @@ public class UpdataService extends IntentService {
     private static final int CONNECT_TO_SERVER_FAILED = 1;
     private static final int CONNECT_TO_SERVER_ERROR = 2;
     private static final int CONNECT_TO_SERVER_SUCCESSFULLY = 3;
+    private static final int CONNECT_TO_SERVER_EXPIRED_DATA = 4;
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
@@ -119,18 +120,15 @@ public class UpdataService extends IntentService {
                                 .addTextBody("newData", paraOut.toString())
                                 .addPart("file", new FileBody(file));
 
-                        if (CONNECT_TO_SERVER_SUCCESSFULLY == sendToServer(outEntity)) {
-                            Log.i(TAG, " successfully send to server ");
-                            boolean res = file.delete();
-                            Log.i(TAG, "try to deleting file.");
-                            if (!res) {
-                                Log.i(TAG, fileName + " deleting failed.");
-                            } else {
+                        int status = sendToServer(outEntity);
+                        if (CONNECT_TO_SERVER_SUCCESSFULLY == status || CONNECT_TO_SERVER_EXPIRED_DATA == status) {
+                            if (file.delete()) {
                                 Log.i(TAG, fileName + " deleting successfully.");
+                            } else {
+                                Log.i(TAG, fileName + " deleting failed.");
                             }
                         }
                     }
-
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -154,21 +152,34 @@ public class UpdataService extends IntentService {
             HttpClient hClient = new DefaultHttpClient(hPara);
             HttpResponse response = hClient.execute(httppost);
 
-            if (200 != response.getStatusLine().getStatusCode()) {
-                Log.i(TAG, "Failed connect to server, error Code" + response.getStatusLine().getStatusCode());
-                return CONNECT_TO_SERVER_FAILED;
-            }
-
+            // Get status code
+            int statusCode = response.getStatusLine().getStatusCode();
+            // Read respond information
             StringBuilder total = new StringBuilder();
             BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
             String line;
             while ((line = rd.readLine()) != null)
                 total.append(line);
+            JSONObject jso = new JSONObject(total.toString());
+            String errorMess = jso.getString("errorMessage");
+            rd.close();
+
+            if (200 != statusCode && 400 != statusCode) {
+                Log.i(TAG, "Failed connect to server");
+                Log.i(TAG,  errorMess);
+                return CONNECT_TO_SERVER_FAILED;
+            }
+
+            int errorCode =  jso.getInt("errorCode");
+            if (400 == statusCode && 1031 == errorCode) {
+                Log.i(TAG, "The file contains expired data, please delete it.");
+                Log.i(TAG, errorMess);
+                return CONNECT_TO_SERVER_EXPIRED_DATA;
+            }
 
             // check if the response succeed
-            JSONObject jso = new JSONObject(total.toString());
-            if (!"OK.".equals(jso.getString("errorMessage"))) {
-                Log.i(TAG, jso.getString("errorMessage"));
+            if (!"OK.".equals(errorMess)) {
+                Log.i(TAG, errorMess);
                 return CONNECT_TO_SERVER_ERROR;
             }
 
