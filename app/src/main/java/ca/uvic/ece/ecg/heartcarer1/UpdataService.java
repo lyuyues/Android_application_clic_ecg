@@ -11,7 +11,6 @@ import java.util.Locale;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.FormBodyPartBuilder;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
@@ -87,8 +86,7 @@ public class UpdataService extends IntentService {
 
                     MultipartEntityBuilder outEntity = MultipartEntityBuilder.create();
                     outEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
-                            .addTextBody("newData", paraOut.toString())
-                            .addPart(FormBodyPartBuilder.create("file", null).build());
+                            .addTextBody("newData", paraOut.toString());
 
                     sendToServer(outEntity);
                 } else {
@@ -154,12 +152,15 @@ public class UpdataService extends IntentService {
 
             // Get status code
             int statusCode = response.getStatusLine().getStatusCode();
+            Log.i(TAG, "statusCode: " + statusCode);
             // Read respond information
             StringBuilder total = new StringBuilder();
             BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
             String line;
             while ((line = rd.readLine()) != null)
                 total.append(line);
+            Log.i(TAG, "Server Return: " + total.toString());
+
             JSONObject jso = new JSONObject(total.toString());
             String errorMess = jso.getString("errorMessage");
             rd.close();
