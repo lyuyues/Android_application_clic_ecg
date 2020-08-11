@@ -153,17 +153,19 @@ public class UpdataService extends IntentService {
             // Get status code
             int statusCode = response.getStatusLine().getStatusCode();
             Log.i(TAG, "statusCode: " + statusCode);
+            
             // Read respond information
             StringBuilder total = new StringBuilder();
             BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
             String line;
             while ((line = rd.readLine()) != null)
                 total.append(line);
-            Log.i(TAG, "Server Return: " + total.toString());
+            rd.close();
+            Log.i(TAG, "Server Return: " + statusCode + ", " + total.toString());
 
+            // check if the response succeed
             JSONObject jso = new JSONObject(total.toString());
             String errorMess = jso.getString("errorMessage");
-            rd.close();
 
             if (200 != statusCode && 400 != statusCode) {
                 Log.i(TAG, "Failed connect to server");
@@ -187,7 +189,6 @@ public class UpdataService extends IntentService {
             Global.updateFrequency(getModel(jso).getInt("frequency"));
             Global.containData = getModel(jso).getBoolean("containData");
 
-            Log.v(TAG, total.toString());
             Log.i(TAG, "successfully connect to server");
             return CONNECT_TO_SERVER_SUCCESSFULLY;
 
