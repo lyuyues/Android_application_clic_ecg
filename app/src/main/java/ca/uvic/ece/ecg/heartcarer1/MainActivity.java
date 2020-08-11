@@ -232,6 +232,12 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         }
     }
 
+    /**
+     * Choose a item from the menu list
+     * Logined: 0 : monitor, 1 : exit
+     * non-login: 0 :monitor  1: patient note 2: return device 3: exit
+     * @param position the order number of the item
+     */
     private void selectItem(int position) {
         mDrawerLayout.closeDrawer(mDrawerList);
 

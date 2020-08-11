@@ -304,16 +304,18 @@ public class HrmFragment extends Fragment {
 
     @SuppressLint("SetTextI18n")
     private void refreshViews() {
-        if (BleService.ConState == BleService.ConState_NotConnected)
+        if (BleService.ConState == BleService.ConState_NotConnected) {
             buttonConState.setText(getResources().getString(R.string.hrm_notconnected));
-        else if (BleService.ConState == BleService.ConState_Connected)
+        } else if (BleService.ConState == BleService.ConState_Connected) {
             buttonConState.setText(getResources().getString(R.string.hrm_connected));
-        else
+        } else {
             buttonConState.setText(getResources().getString(R.string.hrm_connecting));
+        }
+        // set the button showed the current bluetooth connection status
         buttonConState.setEnabled(null != BleService.mDevice);
         buttonConState.setClickable(BleService.ConState == BleService.ConState_Connected
                 || BleService.ConState == BleService.ConState_NotConnected);
-
+        // set the button showed the current testing status
         buttonStartTest.setEnabled(null != BleService.mDevice && BleService.ConState == BleService.ConState_Connected);
         if (BleService.ConState == BleService.ConState_NotConnected || BleService.ConState == BleService.ConState_Connecting) {
             buttonStartTest.setText("Start Test");
