@@ -30,7 +30,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
-
+import android.widget.Toast;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -57,6 +57,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
     private Messenger mBleServiceMessenger;
     private boolean ifBackPressed = false;
     private Menu myMenu;
+    private long exitTime;
 
     private Handler mHandler = new Handler();
     private final Runnable mRunnable = () -> ifBackPressed = false;
@@ -66,6 +67,8 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
 
     private NetworkStateReceiver networkStateReceiver;
     private BleReceiver bleReceiver;
+
+    private static final int RETURN_PERIOD =  2000;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -339,15 +342,19 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
             mDrawerLayout.closeDrawer(mDrawerList);
             return;
         }
-        if (ifBackPressed) {
-            ifBackPressed = false;
-            mHandler.removeCallbacks(mRunnable);
-            moveTaskToBack(false);
-            return;
+
+        if (System.currentTimeMillis() - exitTime > RETURN_PERIOD) {
+            Fragment current = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+            if (current != getSupportFragmentManager().findFragmentByTag(mTitles[0])) {
+                getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, new HrmFragment()).commit();
+                selectItem(0);
+                setTitleAndIcon(0);
+            }
+            Toast.makeText(this, getResources().getString(R.string.main_pressback), Toast.LENGTH_SHORT).show();
+            exitTime = System.currentTimeMillis();
+        } else {
+            super.onBackPressed();
         }
-        ifBackPressed = true;
-        Global.toastMakeText(MainActivity.this, getResources().getString(R.string.main_pressback));
-        mHandler.postDelayed(mRunnable, Global.backInterval);
     }
 
     protected void onDestroy() {
