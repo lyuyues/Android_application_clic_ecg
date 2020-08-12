@@ -85,7 +85,7 @@ public class PatientNotesFragment extends Fragment {
             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    //SendToServer.sendPatientNotes(st + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + et + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + comments);
+                    SendToServer.sendPatientNotes(st + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + et + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + comments);
                 }
             });
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
