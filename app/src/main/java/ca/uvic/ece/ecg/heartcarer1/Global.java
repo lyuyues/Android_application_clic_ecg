@@ -101,9 +101,10 @@ public final class Global {
                     ProgressDialog proDialog = ProgressDialog.show(
                             mActivity,
                             mActivity.getResources().getString(R.string.main_returning_device),
-                            "",
-                            true,
-                            false);
+                            "Please connect clinic, make sure that your appointment is created.",
+                            false,
+                            true);
+                    proDialog.setCanceledOnTouchOutside(true);
 
                     SendToServer.returnDevice(new SendToServer.FuncInterface() {
                         @Override
@@ -127,6 +128,7 @@ public final class Global {
 
                         @Override
                         public void callbackAfterFail(Object obj) {
+                            dialog.dismiss();
                         }
 
                         @Override
