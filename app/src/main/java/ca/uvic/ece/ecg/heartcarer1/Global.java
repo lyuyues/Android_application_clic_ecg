@@ -104,18 +104,34 @@ public final class Global {
                             "",
                             true,
                             false);
-                    returnDevice(new FuncInterface() {
+
+                    SendToServer.returnDevice(new SendToServer.FuncInterface() {
                         @Override
-                        public void callback() {
-                            token = "";
+                        public void callbackAfterSuccess(Object obj) {
+                            Global.token = "";
                             proDialog.dismiss();
                             dialog.dismiss();
                             mActivity.finish();
+
+                            // Empty all stored files when user successfully return the device
+                            FilenameFilter filter = (dir, filename) -> filename.endsWith(".bin");
+                            File[] files = new File(Global.savedPath).listFiles(filter);
+                            for (File file : files) {
+                                file.delete();
+                            }
+                            files = new File(Global.savedPath).listFiles(filter);
+                            if (0 == files.length) {
+                                Log.i(TAG, "Empty files successfully");
+                            }
+                        }
+
+                        @Override
+                        public void callbackAfterFail(Object obj) {
                         }
 
                         @Override
                         public void handleException(Exception e) {
-                            toastMakeText(mActivity, e.getMessage());
+                            Global.toastMakeText(mActivity, e.getMessage());
                             proDialog.dismiss();
                             dialog.dismiss();
                         }
@@ -280,68 +296,5 @@ public final class Global {
     public static void logout() {
         token = "";
         MainActivity.updateAdapter();
-    }
-
-    static void returnDevice(FuncInterface func) {
-        new Thread() {
-            public void run() {
-                try {
-                    JSONObject paraOut = new JSONObject();
-                    paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
-                    paraOut.put("returnDate", sdf.format(new Date()));
-
-                    StringEntity se = new StringEntity(paraOut.toString());
-                    se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-
-                    HttpPost httppost = new HttpPost(Global.WebServiceUrl + "phones/return-status");
-                    httppost.addHeader("verificationcode", token);
-                    httppost.setEntity(se);
-
-                    HttpParams hPara = new BasicHttpParams();
-                    HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
-                    HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
-
-                    HttpClient hClient = new DefaultHttpClient(hPara);
-                    HttpResponse response = hClient.execute(httppost);
-
-                    if (200 != response.getStatusLine().getStatusCode()) {
-                        mHandler.post(() -> func.handleException(new Exception()));
-                        return;
-                    }
-
-                    // get the response string
-                    StringBuilder total = new StringBuilder();
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-                    String line;
-                    while ((line = rd.readLine()) != null) {
-                        total.append(line);
-                    }
-
-                    // check if the response succeed
-                    JSONObject jso = new JSONObject(total.toString());
-                    String errorMessage = jso.getString("errorMessage");
-                    if (!"OK.".equals(errorMessage)) {
-                        mHandler.post(() -> func.handleException(new Exception(errorMessage)));
-                        return;
-                    }
-
-                    // Empty all stored files when user successfully return the device
-                    FilenameFilter filter = (dir, filename) -> filename.endsWith(".bin");
-                    File[] files = new File(Global.savedPath).listFiles(filter);
-                    for (File file : files) {
-                        file.delete();
-                    }
-                    files = new File(Global.savedPath).listFiles(filter);
-                    if (0 == files.length) {
-                        Log.i(TAG, "Empty files successfully");
-                    }
-
-                    mHandler.post(func::callback);
-                } catch (Exception e) {
-                    mHandler.post(() -> func.handleException(e));
-                }
-            }
-        }.start();
-
     }
 }
