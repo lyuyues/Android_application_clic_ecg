@@ -181,9 +181,18 @@ public class HrmFragment extends Fragment {
         @Override
         public void onClick(View v) {
             if (Global.ifSaving) {
-                buttonStartTest.setText("Start Test");
-
-                mSendToSMListener.sendVoidToSM(4);
+                // double check if patient wish to stop testing
+                new AlertDialog.Builder(getContext())
+                        .setTitle("Stop test")
+                        .setMessage("Are you ready for stopping the long term test?")
+                        .setPositiveButton(getContext().getResources().getString(R.string.yes), (dialog, which) -> {
+                                buttonStartTest.setText("Start Test");
+                                mSendToSMListener.sendVoidToSM(4);
+                                dialog.dismiss();
+                        })
+                        .setNegativeButton(getContext().getResources().getString(R.string.no), (dialog, which) -> dialog.dismiss())
+                        .create()
+                        .show();
                 return;
             }
 
