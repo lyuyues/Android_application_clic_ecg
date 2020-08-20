@@ -1,11 +1,13 @@
 package ca.uvic.ece.ecg.heartcarer1;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +40,7 @@ public class PatientNotesFragment extends Fragment {
     private final SimpleDateFormat showTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm aaa", Locale.ENGLISH);
     private Calendar calendar = Calendar.getInstance(Locale.ENGLISH);
     private final TimeZone timeZone = calendar.getTimeZone();
+    private Handler mHandler = new Handler();
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView()");
@@ -64,6 +67,9 @@ public class PatientNotesFragment extends Fragment {
         buttonSend.setOnClickListener(sendListener);
     }
 
+    /**
+     * The listener for send button
+     */
     private View.OnClickListener sendListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -85,7 +91,8 @@ public class PatientNotesFragment extends Fragment {
             builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    SendToServer.sendPatientNotes(st + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + et + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + comments);
+                    String commentsBody = st + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + et + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + comments;
+                    sendNotesCallback(getActivity(), commentsBody);
                 }
             });
             builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -97,6 +104,9 @@ public class PatientNotesFragment extends Fragment {
         }
     };
 
+    /**
+     * The listener for start time text editor
+     */
     private View.OnClickListener startTimeListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -131,6 +141,9 @@ public class PatientNotesFragment extends Fragment {
         }
     };
 
+    /**
+     * The listener for end time text editor
+     */
     private View.OnClickListener endTimeListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -164,6 +177,32 @@ public class PatientNotesFragment extends Fragment {
             dialog.show();
         }
     };
+
+    /**
+     * Define the callback functions of sending patient notes
+     * @param mActivity : the context using
+     * @param body : the whole content string send to server
+     */
+    public void sendNotesCallback(final Activity mActivity, String body) {
+        SendToServer.sendPatientNotes(body ,new SendToServer.FuncInterface() {
+            @Override
+            public void callbackAfterSuccess(Object obj) {
+                mHandler.post(() -> Toast.makeText(getContext(), "Notes sent successfully.",Toast.LENGTH_LONG).show());
+                //clear current notes contents
+                comments = commentView.getText().toString().trim();
+            }
+
+            @Override
+            public void callbackAfterFail(Object obj) {
+                mHandler.post(() -> Toast.makeText(getContext(), "Send notes failed, please try again.",Toast.LENGTH_LONG).show());
+            }
+
+            @Override
+            public void handleException(Exception e) {
+                mHandler.post(() -> Toast.makeText(mActivity, e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        });
+    }
 
     public void onDestroy() {
         super.onDestroy();

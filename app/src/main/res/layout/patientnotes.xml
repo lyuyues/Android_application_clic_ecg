@@ -80,7 +80,7 @@
                     android:inputType="textMultiLine"
                     android:textSize="20sp"
                     android:ellipsize="end"
-                    android:maxLines="2"
+                    android:maxLines="4"
                     android:freezesText="true" />
 
             </LinearLayout>
@@ -88,7 +88,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="100dp" >
+                android:layout_marginTop="90dp" >
 
                 <Button
                     android:id="@+id/button_send"

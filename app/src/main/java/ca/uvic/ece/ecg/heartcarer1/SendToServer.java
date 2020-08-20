@@ -93,7 +93,7 @@ public class SendToServer {
      *
      * @param body a string includes start time, end time and notes contents
      */
-    public static void sendPatientNotes(String body) {
+    public static void sendPatientNotes(String body, FuncInterface func) {
         JSONObject paraOut = new JSONObject();
         new Thread() {
             public void run() {
@@ -107,20 +107,7 @@ public class SendToServer {
                     httppost.addHeader("verificationcode", Global.token);
                     httppost.setEntity(entity);
 
-                    sendToServer("returnDevice", httppost, new FuncInterface() {
-                        @Override
-                        public void callbackAfterSuccess(Object obj) {
-                        }
-
-                        @Override
-                        public void callbackAfterFail(Object obj) {
-                        }
-
-                        @Override
-                        public void handleException(Exception e) {
-
-                        }
-                    });
+                    sendToServer("sendPatientNotes", httppost, func);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -154,7 +141,6 @@ public class SendToServer {
                 }
             }
         }.start();
-
     }
 
 //    public void sendDataToServer() {
@@ -192,7 +178,12 @@ public class SendToServer {
 //        }.start();
 //    }
 
-    // Sent the package to server and get the response
+    /**
+     * Sent the package to server and get the response
+     * @param tag : the process call this function
+     * @param httppost:
+     * @param func : callback functions
+     */
     private static synchronized void sendToServer(String tag, HttpPost httppost, FuncInterface func) {
         new Thread() {
             public void run() {
