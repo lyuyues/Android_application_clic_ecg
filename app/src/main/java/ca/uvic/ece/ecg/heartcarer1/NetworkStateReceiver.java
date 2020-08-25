@@ -19,9 +19,7 @@ public class NetworkStateReceiver extends BroadcastReceiver {
             Toast.makeText(context, "Network " + netInfo.getTypeName() + " connected", Toast.LENGTH_SHORT).show();
             Log.d(TAG, "Have Wifi Connection");
             if (!Global.isLogin()) {
-                Global.login(() -> {
-                    MainActivity.updateAdapter();
-                }, context);
+                Global.login(context);
             }
         } else {
             Toast.makeText(context, "Please connect to Wifi", Toast.LENGTH_SHORT).show();

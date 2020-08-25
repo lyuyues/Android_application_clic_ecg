@@ -9,6 +9,7 @@ import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
@@ -195,15 +196,6 @@ public final class Global {
         Global.savingLength = frequency * 1000;
     }
 
-    interface FuncInterface
-    {
-        void callback();
-
-        default void handleException(Exception e) {
-            Log.i(TAG, "handleException, " + e.toString());
-        }
-    }
-
     private static final String TAG = "Global";
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
@@ -231,68 +223,40 @@ public final class Global {
         return Global.isWifiConnected(context) || Global.isCellularConnected(context);
     }
 
-    public static void login(FuncInterface func, Context context) {
+    public static void login(Context context) {
         Log.i(TAG, "login");
-        if (BleService.mDevice == null) {
+        // if no bluetooth or network connection notify user and return
+        if (BleService.mDevice == null && !isWifiOrCellularConnected(context)) {
             return;
         }
 
-        // if no network connection notify user and return
-        if (!isWifiOrCellularConnected(context)) {
-            return;
-        }
+        try {
+            SendToServer.loginTo(new SendToServer.FuncInterface() {
+                @Override
+                public void callbackAfterSuccess(Object obj) {
+                    JSONObject jso = (JSONObject) obj;
+                    try {
+                        Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
+                        mHandler.post(MainActivity::updateAdapter);
+                        mHandler.post(() -> Toast.makeText(context, "Log in successfully.", Toast.LENGTH_LONG).show());
+                    } catch (Exception e) {
 
-        new Thread() {
-            public void run() {
-                try {
-                    JSONObject paraOut = new JSONObject();
-                    paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
-
-                    StringEntity se = new StringEntity(paraOut.toString());
-                    se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-
-                    HttpPost httppost = new HttpPost(Global.WebServiceUrl + "phones");
-                    httppost.setEntity(se);
-
-                    HttpParams hPara = new BasicHttpParams();
-                    HttpConnectionParams.setConnectionTimeout(hPara, Global.connectionTimeout);
-                    HttpConnectionParams.setSoTimeout(hPara, Global.socketTimeout);
-
-                    HttpClient hClient = new DefaultHttpClient(hPara);
-                    HttpResponse response = hClient.execute(httppost);
-
-                    if (200 != response.getStatusLine().getStatusCode()) {
-                        Log.i(TAG, "Server respond non 200");
-                        func.handleException(new Exception());
-                        return;
                     }
-
-                    // get the response string
-                    StringBuilder total = new StringBuilder();
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-                    String line;
-                    while ((line = rd.readLine()) != null) {
-                        total.append(line);
-                    }
-
-                    // check if the response succeed
-                    JSONObject jso = new JSONObject(total.toString());
-                    String errorMessage = jso.getString("errorMessage");
-                    if (!"OK.".equals(errorMessage)) {
-                        Log.i(TAG, errorMessage);
-                        mHandler.post(() -> Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show());
-                        func.handleException(new Exception(errorMessage));
-                        return;
-                    }
-
-                    Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
-
-                    mHandler.post(func::callback);
-                } catch (Exception e) {
-                    func.handleException(e);
                 }
-            }
-        }.start();
+
+                @Override
+                public void callbackAfterFail(Object obj) {
+                    mHandler.post(() -> Toast.makeText(context, "Log in failed, please contact the clinic.", Toast.LENGTH_LONG).show());
+                }
+
+                @Override
+                public void handleException(Exception e) {
+                    mHandler.post(() -> Toast.makeText(context, e.getMessage(), Toast.LENGTH_LONG).show());
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void logout() {
