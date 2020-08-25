@@ -211,9 +211,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
 
             int i = msg.what;
             if (i == BleService.STATE_CONNECTED) {
-                Global.login(() -> {
-                    updateAdapter();
-                }, MainActivity.this);
+                Global.login(MainActivity.this);
             }
         }
     }

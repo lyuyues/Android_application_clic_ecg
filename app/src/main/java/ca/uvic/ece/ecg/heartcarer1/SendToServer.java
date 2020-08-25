@@ -26,7 +26,9 @@ public class SendToServer {
     static final int connectionTimeout = 3000;
     static final int socketTimeout = 3000;
 
-
+    /**
+     * Interface for callback functions after obtaining the server's feedback
+     */
     interface FuncInterface {
         void callbackAfterSuccess(Object obj);
 
@@ -37,61 +39,38 @@ public class SendToServer {
         }
     }
 
-//    /**
-//     * Verify user with the server and get a token if verified.
-//     *
-//     * @param
-//     * @return
-//     */
-//    public void login(Context context) {
-//        // if no network connection notify user and return
-//        if (!Global.isWifiOrCellularConnected(context)) {
-//            return;
-//        }
-//        JSONObject paraOut = new JSONObject();
-//        new Thread() {
-//            public void run() {
-//                try {
-//                    paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
-//                    StringEntity entity = new StringEntity(paraOut.toString());
-//                    entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-//
-//                    HttpPost httppost = new HttpPost(Global.WebServiceUrl + "phones");
-//                    httppost.setEntity(entity);
-//
-//                    sendToServer("login", httppost, new FuncInterface() {
-//                        @Override
-//                        public void callbackAfterSuccess(Object obj) {
-//                            JSONObject jso = (JSONObject) obj;
-//                            try {
-//                                Global.token = jso.getJSONObject("entity").getJSONObject("model").getString("message");
-//                            } catch (Exception e) {
-//
-//                            }
-//                        }
-//
-//                        @Override
-//                        public void callbackAfterFail(Object obj) {
-//                        }
-//
-//                        @Override
-//                        public void handleException(Exception e) {
-//
-//                        }
-//                    });
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }.start();
-//    }
+    /**
+     * Verify user with the server and get a token if verified.
+     *
+     * @param func :  callbacks
+     */
+    public static void loginTo(SendToServer.FuncInterface func) {
+        JSONObject paraOut = new JSONObject();
+        new Thread() {
+            public void run() {
+                try {
+                    paraOut.put("deviceMacAddress", BleService.mDevice.getAddress());
+                    StringEntity entity = new StringEntity(paraOut.toString());
+                    entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+
+                    HttpPost httppost = new HttpPost(Global.WebServiceUrl + "phones");
+                    httppost.setEntity(entity);
+
+                    sendToServer("login", httppost, func);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+    }
 
     /**
      * Post to server with url "http://ecg.uvic.ca:8080/v1/test/phones/comment"
      * Header: "verificationcode" - token
      * Body: "comment" - body
      *
-     * @param body a string includes start time, end time and notes contents
+     * @param body : a string includes start time, end time and notes contents
+     * @param func : callback functions implement interface FuncInterface
      */
     public static void sendPatientNotes(String body, FuncInterface func) {
         JSONObject paraOut = new JSONObject();
@@ -213,14 +192,13 @@ public class SendToServer {
                     JSONObject jso = new JSONObject(total.toString());
                     if (!"OK.".equals(jso.getString("errorMessage"))) {
                         Log.v(tag, jso.getString("errorMessage"));
-                        func.callbackAfterFail(null);
+                        func.callbackAfterFail(jso);
                         return;
                     }
 
                     // If succeed, do the job
                     Log.i(tag, "successfully connect to server");
-                    func.callbackAfterSuccess(null);
-
+                    func.callbackAfterSuccess(jso);
                 } catch (Exception e) {
                     func.handleException(e);
                     e.printStackTrace();
