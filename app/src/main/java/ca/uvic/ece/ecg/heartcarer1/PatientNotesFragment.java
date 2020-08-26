@@ -41,10 +41,11 @@ public class PatientNotesFragment extends Fragment {
     private Calendar calendar = Calendar.getInstance(Locale.ENGLISH);
     private final TimeZone timeZone = calendar.getTimeZone();
     private Handler mHandler = new Handler();
+    private String st;
+    private String et;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView()");
-
         view = inflater.inflate(R.layout.patientnotes, container, false);
         findViewsById();
         setListener();
@@ -73,8 +74,6 @@ public class PatientNotesFragment extends Fragment {
     private View.OnClickListener sendListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            String st = startTimeView.getText().toString();
-            String et = endTimeView.getText().toString();
             comments = commentView.getText().toString().replaceAll("\n", " ").trim();
             // If note is empty, return
             if (comments == null || comments.length() == 0) {
@@ -122,7 +121,8 @@ public class PatientNotesFragment extends Fragment {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     startTime = new Date(datePicker.getYear() - 1900, datePicker.getMonth(), datePicker.getDayOfMonth(), timePicker.getHour(), timePicker.getMinute());
-                    startTimeView.setText(showTimeFormat.format(startTime));
+                    st = showTimeFormat.format(startTime);
+                    startTimeView.setText(st);
                     startTimeView.setEnabled(true);
                     endTimeView.setEnabled(true);
                 }
@@ -159,7 +159,8 @@ public class PatientNotesFragment extends Fragment {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     endTime = new Date(datePicker.getYear() - 1900, datePicker.getMonth(), datePicker.getDayOfMonth(), timePicker.getHour(), timePicker.getMinute());
-                    endTimeView.setText(showTimeFormat.format(endTime));
+                    et = showTimeFormat.format(endTime);
+                    endTimeView.setText(et);
                     startTimeView.setEnabled(true);
                     endTimeView.setEnabled(true);
                 }
@@ -188,8 +189,7 @@ public class PatientNotesFragment extends Fragment {
             @Override
             public void callbackAfterSuccess(Object obj) {
                 mHandler.post(() -> Toast.makeText(getContext(), "Notes sent successfully.",Toast.LENGTH_LONG).show());
-                //clear current notes contents
-                comments = commentView.getText().toString().trim();
+                commentView.setText("");
             }
 
             @Override
@@ -202,10 +202,5 @@ public class PatientNotesFragment extends Fragment {
                 mHandler.post(() -> Toast.makeText(mActivity, e.getMessage(), Toast.LENGTH_LONG).show());
             }
         });
-    }
-
-    public void onDestroy() {
-        super.onDestroy();
-        Log.i(TAG, "onDestroy()");
     }
 }
