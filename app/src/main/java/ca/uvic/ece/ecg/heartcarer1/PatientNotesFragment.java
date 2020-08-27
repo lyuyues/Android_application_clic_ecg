@@ -34,7 +34,7 @@ public class PatientNotesFragment extends Fragment {
     private TextView endTimeView;
     private Date startTime;
     private Date endTime;
-    private String comments;
+    private String comments = "";
     private Button buttonSend;
     private AlertDialog.Builder dialog;
     private final SimpleDateFormat showTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm aaa", Locale.ENGLISH);
@@ -48,18 +48,22 @@ public class PatientNotesFragment extends Fragment {
         Log.i(TAG, "onCreateView()");
         view = inflater.inflate(R.layout.patientnotes, container, false);
         findViewsById();
+        setViewsText();
         setListener();
-        comments = commentView.getText().toString().trim();
         return view;
     }
 
     private void findViewsById() {
         startTimeView = view.findViewById(R.id.start_time_input);
-        startTimeView.setText(showTimeFormat.format(calendar.getTime()));
         endTimeView = view.findViewById(R.id.end_time_input);
-        endTimeView.setText(showTimeFormat.format(calendar.getTime()));
         commentView = view.findViewById(R.id.notes);
         buttonSend = view.findViewById(R.id.button_send);
+    }
+
+    private void setViewsText() {
+        startTimeView.setText(SharedPreferencesUtility.getStartTime(getActivity()));
+        endTimeView.setText(SharedPreferencesUtility.getEndTime(getActivity()));
+        commentView.setText(SharedPreferencesUtility.getNotes(getActivity()));
     }
 
     private void setListener() {
@@ -76,7 +80,7 @@ public class PatientNotesFragment extends Fragment {
         public void onClick(View v) {
             comments = commentView.getText().toString().replaceAll("\n", " ").trim();
             // If note is empty, return
-            if (comments == null || comments.length() == 0) {
+            if (comments.length() == 0) {
                 Toast.makeText(getContext(), "Note is empty. Please make sure fill note in.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -87,17 +91,11 @@ public class PatientNotesFragment extends Fragment {
             AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
             builder.setTitle("Send Note");
             builder.setMessage("Are you ready to send the note to the clinic?");
-            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    String commentsBody = st + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + et + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + comments;
-                    sendNotesCallback(getActivity(), commentsBody);
-                }
+            builder.setPositiveButton("Yes", (dialogInterface, i) -> {
+                String commentsBody = st + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + et + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + comments;
+                sendNotesCallback(getActivity(), commentsBody);
             });
-            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                }
+            builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
             });
             builder.show();
         }
@@ -127,13 +125,10 @@ public class PatientNotesFragment extends Fragment {
                     endTimeView.setEnabled(true);
                 }
             });
-            dialog.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    startTimeView.setEnabled(true);
-                    endTimeView.setEnabled(true);
-                }
+            dialog.setNegativeButton("cancel", (dialog, which) -> {
+                dialog.dismiss();
+                startTimeView.setEnabled(true);
+                endTimeView.setEnabled(true);
             });
 
             dialog.setView(pickers);
@@ -181,20 +176,22 @@ public class PatientNotesFragment extends Fragment {
 
     /**
      * Define the callback functions of sending patient notes
+     *
      * @param mActivity : the context using
-     * @param body : the whole content string send to server
+     * @param body  : the whole content string send to server
      */
     public void sendNotesCallback(final Activity mActivity, String body) {
-        SendToServer.sendPatientNotes(body ,new SendToServer.FuncInterface() {
+        SendToServer.sendPatientNotes(body, new SendToServer.FuncInterface() {
             @Override
             public void callbackAfterSuccess(Object obj) {
-                mHandler.post(() -> Toast.makeText(getContext(), "Notes sent successfully.",Toast.LENGTH_LONG).show());
-                commentView.setText("");
+                mHandler.post(() -> Toast.makeText(getContext(), "Notes sent successfully.", Toast.LENGTH_LONG).show());
+                SharedPreferencesUtility.emptyReference(getActivity());
+                setViewsText();
             }
 
             @Override
             public void callbackAfterFail(Object obj) {
-                mHandler.post(() -> Toast.makeText(getContext(), "Send notes failed, please try again.",Toast.LENGTH_LONG).show());
+                mHandler.post(() -> Toast.makeText(getContext(), "Send notes failed, please try again.", Toast.LENGTH_LONG).show());
             }
 
             @Override
@@ -202,5 +199,12 @@ public class PatientNotesFragment extends Fragment {
                 mHandler.post(() -> Toast.makeText(mActivity, e.getMessage(), Toast.LENGTH_LONG).show());
             }
         });
+    }
+
+    @Override
+    public void onPause() {
+        Log.i(TAG, "onPause()");
+        SharedPreferencesUtility.setPreference(getActivity(), st, et, commentView.getText().toString().trim());
+        super.onPause();
     }
 }
