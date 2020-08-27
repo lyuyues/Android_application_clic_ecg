@@ -122,6 +122,7 @@ public class MainActivity extends FragmentActivity implements HrmFragment.sendVo
         IntentFilter bleFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
         bleFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
         this.registerReceiver(bleReceiver, bleFilter);
+        SharedPreferencesUtility.emptyReference(MainActivity.this);
     }
 
     private void initTitlesAndIcons() {

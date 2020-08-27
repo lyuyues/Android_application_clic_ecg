@@ -80,7 +80,7 @@
     <string name="main_notes">Notes</string>
     <string name="main_hi">Hi</string>
     <string name="main_welcome">", welcome to use "</string>
-    <string name="main_pressback">Press back button again to return to home!</string>
+    <string name="main_pressback">Double press back button to return to home!</string>
     <string name="main_thank">"Thank you for using "</string>
     <string name="hrm_notconnected">Not Connected</string>
     <string name="hrm_connected">Connected</string>
@@ -152,4 +152,9 @@
     <string name="quick_test_report">Quick Test Report</string>
     <string name="channel_name">Heart Carer</string>
     <string name="channel_description">Heart Carer Background Service</string>
+    <string name="to">To</string>
+    <string name="from">From</string>
+    <string name="notes">Notes</string>
+    <string name="time">Time</string>
+    <string name="date">Date</string>
 </resources>
