@@ -61,9 +61,16 @@ public class PatientNotesFragment extends Fragment {
     }
 
     private void setViewsText() {
-        startTimeView.setText(SharedPreferencesUtility.getStartTime(getActivity()));
-        endTimeView.setText(SharedPreferencesUtility.getEndTime(getActivity()));
-        commentView.setText(SharedPreferencesUtility.getNotes(getActivity()));
+        String st = SharedPreferencesUtility.getStartTime(getActivity());
+        st = st == null ? showTimeFormat.format(calendar.getTime()) : st;
+        String et = SharedPreferencesUtility.getEndTime(getActivity());
+        et =  et == null ? showTimeFormat.format(calendar.getTime()) : et;
+        String ct = SharedPreferencesUtility.getNotes(getActivity());
+        ct = ct == null ? "" : ct;
+
+        startTimeView.setText(st);
+        endTimeView.setText(et);
+        commentView.setText(ct);
     }
 
     private void setListener() {

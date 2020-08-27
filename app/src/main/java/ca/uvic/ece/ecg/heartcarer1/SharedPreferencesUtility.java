@@ -46,5 +46,4 @@ public class SharedPreferencesUtility {
         SharedPreferences sharedPref = context.getSharedPreferences(context.getString(R.string.notes), Context.MODE_PRIVATE);
         return sharedPref.getString(key, null);
     }
-
 }
