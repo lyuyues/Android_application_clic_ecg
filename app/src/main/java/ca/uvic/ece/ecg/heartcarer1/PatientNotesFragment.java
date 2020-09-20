@@ -19,9 +19,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 /**
  * This Fragment allows user to change input notes
@@ -32,17 +30,17 @@ public class PatientNotesFragment extends Fragment {
     private TextView commentView;
     private TextView startTimeView;
     private TextView endTimeView;
-    private Date startTime;
-    private Date endTime;
     private String comments = "";
     private Button buttonSend;
     private AlertDialog.Builder dialog;
     private final SimpleDateFormat showTimeFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm aaa", Locale.ENGLISH);
     private Calendar calendar = Calendar.getInstance(Locale.ENGLISH);
-    private final TimeZone timeZone = calendar.getTimeZone();
     private Handler mHandler = new Handler();
     private String st;
     private String et;
+    private Calendar startTime;
+    private Calendar endTime;
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.i(TAG, "onCreateView()");
@@ -99,7 +97,7 @@ public class PatientNotesFragment extends Fragment {
             builder.setTitle("Send Note");
             builder.setMessage("Are you ready to send the note to the clinic?");
             builder.setPositiveButton("Yes", (dialogInterface, i) -> {
-                String commentsBody = st + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + et + " " + timeZone.getDisplayName(false, 0, Locale.ENGLISH) + " " + comments;
+                String commentsBody = sdf.format(startTime.getTime()) + " " + sdf.format(endTime.getTime()) + " " + comments;
                 sendNotesCallback(getActivity(), commentsBody);
             });
             builder.setNegativeButton("Cancel", (dialogInterface, i) -> {
@@ -125,8 +123,9 @@ public class PatientNotesFragment extends Fragment {
                 @RequiresApi(api = Build.VERSION_CODES.M)
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    startTime = new Date(datePicker.getYear() - 1900, datePicker.getMonth(), datePicker.getDayOfMonth(), timePicker.getHour(), timePicker.getMinute());
-                    st = showTimeFormat.format(startTime);
+                    startTime = Calendar.getInstance(Locale.ENGLISH);;
+                    startTime.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(), timePicker.getHour(), timePicker.getMinute());
+                    st = showTimeFormat.format(startTime.getTime());
                     startTimeView.setText(st);
                     startTimeView.setEnabled(true);
                     endTimeView.setEnabled(true);
@@ -160,8 +159,9 @@ public class PatientNotesFragment extends Fragment {
                 @RequiresApi(api = Build.VERSION_CODES.M)
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    endTime = new Date(datePicker.getYear() - 1900, datePicker.getMonth(), datePicker.getDayOfMonth(), timePicker.getHour(), timePicker.getMinute());
-                    et = showTimeFormat.format(endTime);
+                    endTime = Calendar.getInstance(Locale.ENGLISH);
+                    endTime.set(datePicker.getYear(), datePicker.getMonth(), datePicker.getDayOfMonth(), timePicker.getHour(), timePicker.getMinute());
+                    et = showTimeFormat.format(endTime.getTime());
                     endTimeView.setText(et);
                     startTimeView.setEnabled(true);
                     endTimeView.setEnabled(true);
