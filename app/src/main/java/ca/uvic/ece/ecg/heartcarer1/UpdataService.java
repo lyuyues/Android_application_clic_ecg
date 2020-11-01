@@ -37,6 +37,7 @@ public class UpdataService extends IntentService {
     private static final int CONNECT_TO_SERVER_ERROR = 2;
     private static final int CONNECT_TO_SERVER_SUCCESSFULLY = 3;
     private static final int CONNECT_TO_SERVER_EXPIRED_DATA = 4;
+    private static final int CONNECT_TO_SERVER_EXPIRED_VERIFICATION_CODE = 5;
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH);
 
@@ -167,10 +168,17 @@ public class UpdataService extends IntentService {
             JSONObject jso = new JSONObject(total.toString());
             String errorMess = jso.getString("errorMessage");
 
-            if (200 != statusCode && 400 != statusCode) {
+            if (200 != statusCode && 400 != statusCode && 401 != statusCode) {
                 Log.i(TAG, "Failed connect to server");
                 Log.i(TAG,  errorMess);
                 return CONNECT_TO_SERVER_FAILED;
+            }
+
+            // when the verification code is expired, re-login to get an new one.
+            if (401 == response.getStatusLine().getStatusCode()) {
+                Log.i(TAG, "The verification code is expired, please Re-login");
+                Global.login(MyApplication.getContext());
+                return CONNECT_TO_SERVER_EXPIRED_VERIFICATION_CODE;
             }
 
             int errorCode =  jso.getInt("errorCode");

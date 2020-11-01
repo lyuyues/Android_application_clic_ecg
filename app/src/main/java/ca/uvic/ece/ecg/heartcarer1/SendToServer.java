@@ -1,5 +1,4 @@
 package ca.uvic.ece.ecg.heartcarer1;
-
 import android.util.Log;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -11,7 +10,6 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HTTP;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -45,6 +43,7 @@ public class SendToServer {
      * @param func :  callbacks
      */
     public static void loginTo(SendToServer.FuncInterface func) {
+        Log.i(TAG,"loginTo");
         JSONObject paraOut = new JSONObject();
         new Thread() {
             public void run() {
@@ -59,6 +58,7 @@ public class SendToServer {
                     sendToServer("login", httppost, func);
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Log.i(TAG, "loginTo failed");
                 }
             }
         }.start();
@@ -122,41 +122,6 @@ public class SendToServer {
         }.start();
     }
 
-//    public void sendDataToServer() {
-//        JSONObject paraOut = new JSONObject();
-//        new Thread() {
-//            public void run() {
-//                try {
-//                    paraOut.put("startTime", null)
-//                            .put("endTime", null)
-//                            .put("phoneStatus", Global.phoneStatus);
-//                    StringEntity entity = new StringEntity(paraOut.toString());
-//                    entity.setContentType(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-//                    HttpPost httppost = new HttpPost(WebServiceUrl + "patient/ecg-/ecg-raw-data");
-//                    httppost.addHeader("verificationcode", Global.token);
-//                    httppost.setEntity(entity);
-//
-//                    sendToServer("sendDataToServer", httppost, new FuncInterface() {
-//                        @Override
-//                        public void callbackAfterSuccess(Object obj) {
-//                        }
-//
-//                        @Override
-//                        public void callbackAfterFail(Object obj) {
-//                        }
-//
-//                        @Override
-//                        public void handleException(Exception e) {
-//
-//                        }
-//                    });
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }.start();
-//    }
-
     /**
      * Sent the package to server and get the response
      * @param tag : the process call this function
@@ -181,9 +146,20 @@ public class SendToServer {
                     while ((line = rd.readLine()) != null)
                         total.append(line);
 
+                    int statusCode = response.getStatusLine().getStatusCode();
+                    Log.i(TAG,statusCode + total.toString());
+
                     if (200 != response.getStatusLine().getStatusCode()) {
                         Log.i(tag, "Response non-200");
                         Log.i(tag, "" + response.getStatusLine().getStatusCode() + total.toString());
+                        func.callbackAfterFail(null);
+                        return;
+                    }
+
+                    // when the verification code is expired, re-login to get an new one.
+                    if (401 == response.getStatusLine().getStatusCode()) {
+                        Log.i(TAG, "The verification code is expired, Re-login");
+                        Global.login(MyApplication.getContext());
                         func.callbackAfterFail(null);
                         return;
                     }
@@ -205,10 +181,5 @@ public class SendToServer {
                 }
             }
         }.start();
-    }
-
-    JSONObject getModel(JSONObject jso)
-            throws JSONException {
-        return jso.getJSONObject("entity").getJSONObject("model");
     }
 }
